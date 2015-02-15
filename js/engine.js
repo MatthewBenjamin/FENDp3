@@ -45,8 +45,18 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        update(dt);
-        render();
+        if (!modeSelect.gameMode) {
+            requestAnimationFrame(modeSelect.render);
+        } else if (!modeSelect.instructionsShown) {
+            console.log("show instructions")
+            modeSelect.instructionsShown = true;
+        } else if (paused) {
+            console.log("It's paused!");
+        } else {
+            update(dt);
+            render();            
+        }
+
 
         /* Set our lastTime variable which is used to determine the time delta
          * for the next time this function is called.
@@ -80,7 +90,6 @@ var Engine = (function(global) {
      */
     function update(dt) {
         updateEntities(dt);
-        // checkCollisions();
     }
 
     /* This is called by the update function  and loops through all of the
@@ -115,6 +124,7 @@ var Engine = (function(global) {
                 'images/grass-block.png',   // Row 1 of 2 of grass
                 'images/grass-block.png'    // Row 2 of 2 of grass
             ],
+            //To DO: make these global to help implement enemy & player locations?
             numRows = 6,
             numCols = 5,
             row, col;
@@ -123,6 +133,10 @@ var Engine = (function(global) {
          * and, using the rowImages array, draw the correct image for that
          * portion of the "grid"
          */
+
+        //Clear canvas (to prevent images sticking above the water)
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        //ctx.drawImage();
         for (row = 0; row < numRows; row++) {
             for (col = 0; col < numCols; col++) {
                 /* The drawImage function of the canvas' context element
@@ -135,8 +149,7 @@ var Engine = (function(global) {
                 ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
             }
         }
-
-
+        
         renderEntities();
     }
 
@@ -157,10 +170,73 @@ var Engine = (function(global) {
 
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
-     * those sorts of things. It's only called once by the init() method.
+     * - those sorts of things. It's only called once by the init() method.
      */
+
+    //TO DO: render/update function(s)? (refactor code in reset, move to render function)
+    modeSelect.render = function () {
+        //if modeSelect.gameMode -> instructions screen, OR if gameMode === 'human' -> human instructions screen, etc. ?
+        //else render modeSelect screen
+
+        //clear canvas
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        if (modeSelect.gameMode) {
+            console.log("Need to display instructions");
+            //paused = false;
+        } else {
+            ctx.font = "34pt Impact";
+            ctx.textAlign = "center";
+            ctx.fillText("SELECT GAME MODE", canvas.width / 2, 40);
+            ctx.fillStyle = "black";
+            ctx.strokeStyle = "black";
+
+            if (modeSelect.inputPos === 0) {
+                //highlight human mode
+                ctx.fillRect(canvas.width / 2 - 225,100,200,100);
+
+                //display passive bug mode
+                ctx.strokeRect(canvas.width / 2 - 225,250,200,100);
+
+                //display human mode desc
+                ctx.font = "18pt Impact";
+                ctx.strokeText("Human", canvas.width / 2 + 125, 125);
+            } else if (modeSelect.inputPos === 1) {
+                //passive human mode
+                ctx.strokeRect(canvas.width / 2 - 225,100,200,100);
+
+                //highlight bug mode
+                ctx.fillRect(canvas.width / 2 - 225,250,200,100);
+                
+                //display bug mode desc
+                ctx.font = "18pt Impact";
+                ctx.strokeText("Bug", canvas.width / 2 + 125, 125);
+            } else {
+                console.log("ERROR");
+            }
+
+            ctx.strokeRect(canvas.width / 2 + 25,100,200,250);
+
+            //select screen instructions
+            ctx.strokeRect(canvas.width / 2 - 225, 375, 450, 100);
+            ctx.fillText("Directions", canvas.width / 2, 400);
+            ctx.fillText("Use UP and DOWN arrows to toggle selection", canvas.width / 2, 430);
+            ctx.fillText("Press ENTER to select game mode", canvas.width / 2, 460);
+
+        }
+    };
+
     function reset() {
-        // noop
+        //draw: mode select screen (play as human or bug)
+        //pause animation while waiting for response
+        console.log("reset");
+
+        //take input to assign gameMode variable (use keyboard for input, mouse too complicated)
+
+        //instructions screen after selecting gamemode
+        // (gameMode affects prototype level functions, have initial function that sets the prototype object functions
+        // based on the value of gameMode)
+
     }
 
     /* Go ahead and load all of the images we know we're going to need to
