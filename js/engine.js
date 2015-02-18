@@ -48,8 +48,8 @@ var Engine = (function(global) {
         if (!modeSelect.gameMode) {
             requestAnimationFrame(modeSelect.render);
         } else if (!modeSelect.instructionsShown) {
-            console.log("show instructions")
-            modeSelect.instructionsShown = true;
+            makeGameObjects();
+            modeSelect.showInstructions();
         } else if (paused) {
             console.log("It's paused!");
         } else {
@@ -182,8 +182,6 @@ var Engine = (function(global) {
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
         if (modeSelect.gameMode) {
-            console.log("Need to display instructions");
-            //paused = false;
         } else {
             ctx.font = "34pt Impact";
             ctx.textAlign = "center";
@@ -225,19 +223,19 @@ var Engine = (function(global) {
 
         }
     };
-
+    modeSelect.instructionsShown = false;
+    modeSelect.showInstructions = function() {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+        ctx.fillText("Show Instructions based on game mode here", canvas.width / 2 , 100);
+        ctx.fillText("Press ENTER to continue", canvas.width / 2, 200);
+        paused = true;
+        modeSelect.instructionsShown = true;
+    }
+    // TO DO: move mode select into here (instead of in main function), have it call itself (like in main function)
     function reset() {
-        //draw: mode select screen (play as human or bug)
-        //pause animation while waiting for response
         console.log("reset");
 
-        //take input to assign gameMode variable (use keyboard for input, mouse too complicated)
-
-        //instructions screen after selecting gamemode
-        // (gameMode affects prototype level functions, have initial function that sets the prototype object functions
-        // based on the value of gameMode)
-
-    }
+   }
 
     /* Go ahead and load all of the images we know we're going to need to
      * draw our game level. Then set init as the callback method, so that when
