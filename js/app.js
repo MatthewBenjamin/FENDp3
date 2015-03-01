@@ -59,22 +59,16 @@ difficulty.modes = {
 var instructions = {}
 var paused = false;
 
+var rows = [60, 140, 220];
+var columns = [0, 100, 200, 300, 400];
+
 //TO DO: refactor enemy objects to use these - ***THIS DOESN"T WORK - this.x/y points to function, not what
 //the function returns
-var randomCol = function () {
-            //y pixel values for each row (rounded)
-            var rows = [0, 100, 200, 300, 400];
-
-            var decision = Math.floor(Math.random() * rows.length);
-            return rows[decision];            
+var randomArray = function(inputArray) {
+    var decision = Math.floor(Math.random() * inputArray.length);
+    return inputArray[decision];
 }
-var randomRow = function () {
-            //y pixel values for each row (rounded)
-            var rows = [60, 140, 220];
 
-            var decision = Math.floor(Math.random() * rows.length);
-            return rows[decision];            
-}
 
 //TO DO: implement level function in human mode, higher level --> faster enemies
 //bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
@@ -140,10 +134,6 @@ var Rock = function() {
     //this.x = this.randomX() -OR- randomX(); and use randomX for Stars, rocks, and gems
     //this.y same as this.x but separate Y function
 }
-
-
-var rows = [60, 140, 220];
-var columns = [0, 100, 200, 300, 400];
 
 function makeEnemies() {
 
