@@ -74,6 +74,7 @@ var randomArray = function(inputArray) {
 //bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
 var level;
 var allEnemies = [];
+var allGems = [];
 var player;
 
 //ROCKS, STARS, & GEMS should NOT occupy the same same (implement this after everything else works?)
@@ -97,8 +98,8 @@ var Gem = function() {
     //this.gemClass = Math.floor(Math.random() * 3); change this to make higher classes rarer or incoporate into generateGems function
     this.sprite = gemSprites[0];
     //this.points/value = gemPoints[gemClass]
-    this.x = 200; //randomRow;
-    this.y = 160; //randomCol;
+    this.x = randomArray(columns); //200; //randomRow;
+    this.y = randomArray(rows); //randomCol;
     // ----update to check for collision (or put in player update?)
 }
 
@@ -106,9 +107,12 @@ Gem.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
 
-var allGems = []
 function generateGems() {
-    //var numofGems = 1;
+    //TO DO: make genAttempts global to vary it based on difficulty? or just vary success rate?
+    var genAttempts = 5;
+    for (var i=0; i < genAttempts; i++) {
+
+    }
     allGems.push(new Gem);
 }
 
