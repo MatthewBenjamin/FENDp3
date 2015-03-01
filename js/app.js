@@ -1,4 +1,9 @@
 /* *** TO DOs: ***
+
+Basic Functionality:
+-levels
+-score
+
 1   add helper functions (refactor gen player and enemy classes) to
     gameMode.human & gameMode.bug
     move difficulty object into gameMode.diffculty
@@ -141,28 +146,56 @@ var Rock = function() {
     //this.y same as this.x but separate Y function
 }
 
-function makeEnemies() {
-
-    //TO DO: put if statement inside Enemy function? is this less efficient?
-    //OR put parameters in outside object-variables and point to them
-    if (gameMode.mode === "human") {
-        //human mode
-        var Enemy = function() {
-            this.sprite = 'images/enemy-bug.png'; //different from bug mode
-            this.speed = this.randomSpeed(10,10); //same   TO DO: fine tune parameters
-            this.x = this.startPos(-500, 400); //diff parameters
-            this.y = this.randomLane(rows); //same
-        }
+var enemySprites = {};
+enemySprites.bug = [
+    'images/char-boy.png',
+    'images/char-cat-girl.png',
+    'images/char-horn-girl.png',
+    'images/char-pink-girl.png',
+    'images/char-princess-girl.png'
+]
+enemySprites.human = 'images/enemy-bug.png'
+enemySprites.choose = function() {
+    if (gameMode.mode === 'human') {
+        return enemySprites.human;
     } else {
-         var Enemy = function() {
-            this.sprite = 'images/char-boy.png'; // TO DO: make this random (select from all human pngs)
-                                                 //different from human mode
-            this.speed = this.randomSpeed(10,10); //same TO DO: fine tune parameters
-            this.x = this.randomLane(columns); //same
-            this.y = this.startPos(300,600);  //TO DO: fine tune parameters
+        return randomArray(enemySprites.bug);
+    }
+}
+
+var startMin;
+var startMax;
+
+//TO DO: fine tune startMin/Max, speed params
+function makeEnemies() {
+    if (gameMode === 'human') {
+        startMin = -500
+        startMax = 300
+    } else {
+        startMin = 300
+        startMax = 600
+    }
+
+    var Enemy = function() {
+        this.sprite = this.chooseSprite();
+        this.speed = this.randomSpeed(10,5);    //TO DO: var baseSpeed & modifySpeed ?
+        if (gameMode.mode === "human") {
+                this.x = this.startPos(startMin, startMax);
+                this.y = this.randomLane(rows);
+
+        } else {
+            this.x = this.randomLane(columns);
+            this.y = this.startPos(startMin, startMax);
         }
     }
 
+    Enemy.prototype.chooseSprite = function() {
+        if (gameMode.mode === 'human') {
+            return enemySprites.human;
+        } else {
+            return randomArray(enemySprites.bug);
+        }
+    }
     //same
     Enemy.prototype.randomSpeed = function (base, modifier) {
         var base = base;
@@ -172,10 +205,10 @@ function makeEnemies() {
 
     //same
     Enemy.prototype.startPos = function(min, max) {
-        return Math.floor(Math.random() * min + max);   
+        return Math.floor(Math.random() * (max -min + 1) + min);   
     }
 
-    //same
+    //do I need this? randomArray
     Enemy.prototype.randomLane = function (lanes) {
             var decision = Math.floor(Math.random() * lanes.length);
             return lanes[decision];            
@@ -199,19 +232,23 @@ function makeEnemies() {
             }
         }
     } else {
-    //bug mode
-    Enemy.prototype.update = function (dt) {
-            // if enemy has traversed entire area, LOSE
-            if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40) {
-                this.y = 300;
-                this.speed = 0;
+        //bug mode
+        Enemy.prototype.update = function (dt) {
+                //TO DO: proper speed modification
+                // if enemy has traversed entire area, LOSE
+                if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40) {
+                    this.y = this.startPos(500,1000);
+                    this.sprite = this.chooseSprite();
+                    this.speed += 10;
+                }
+                else if (this.y <= -200) {
+                    this.y = this.startPos(500,1000);
+                    this.sprite = this.chooseSprite();
+                    this.speed += 10;
+                } else {
+                    this.y -= this.speed * dt;
+                }
             }
-            else if (this.y <= -20) {
-                this.y = 600;
-            } else {
-                this.y -= this.speed * dt;
-            }
-        }
     }
 
     // ***all below is the same***
@@ -284,6 +321,7 @@ function makePlayer() {
     } else {
         //TO DO: put something here or edit game engine
         //put score check to set up dyanmic level items here? --> yes b/c no objects = nowhere else to perform update(except engine)?
+        //TO DO: add direction attribute and change img according to direction
         Player.prototype.update = function(dt) {}
     }
 
