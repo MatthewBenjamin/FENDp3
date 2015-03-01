@@ -123,7 +123,6 @@ var Engine = (function(global) {
                 'images/grass-block.png',   // Row 1 of 2 of grass
                 'images/grass-block.png'    // Row 2 of 2 of grass
             ],
-            //To DO: make these global to help implement enemy & player locations?
             numRows = 6,
             numCols = 5,
             row, col;

@@ -7,6 +7,8 @@
         Human Mode: Generate upon next level(possibly with timer before appearing) - level and difficulty determine # and type
             i.e. var i = x - level, for (var a =0; i, a+=1) {equation for randomly picking if gem and type based on difficulty}
         Bug Mode: trigger potential generations occasionality based on dynamic levels
+
+        different gems give different benefits? - points, extra points when killing enemies, extra health/attack
 3
     Implement Stars
         Human: generate upon next level(possibly with timer before appearing) - level and difficulty determine features (like gems) - star with player invinciblity upon contact
@@ -30,6 +32,7 @@
     Character Creator
         player assigns character sprite and trait points
 */
+
 var modeSelect= {};
 //modeSelect.gameMode;
 
@@ -53,41 +56,7 @@ difficulty.modes = {
     1 : "medium",
     2 : "hard"
 }
-
-modeSelect.handleInput = function(input) {
-    //up & down keys toggle focus
-    if (input === 'down' && inputPos === 0) {
-            inputPos += 1;
-    } else if (input === 'up' && inputPos === 1) {
-            inputPos = 0;
-    } else if (input === 'enter') {
-        //use json here for possible game modes instead of more if statements?
-        //ie gameMode.mode = modeSelect.possibleModes[inputPos];
-        if (inputPos === 0) {
-            gameMode.mode = 'human';
-        } else if (inputPos === 1) {
-            gameMode.mode = 'bug';
-        } else {
-            console.log("ERROR modeSelect.handleInput");
-        }
-    }
-};
-
 var instructions = {}
-
-instructions.handleInput = function(input){
-    if (input === 'right' && (inputPos === 0 || inputPos === 1)) {
-        inputPos += 1;
-    } else if (input === 'left' && (inputPos === 1 || inputPos === 2)) {
-        inputPos -= 1;
-    } else if (input === 'enter') {
-        difficulty.current = difficulty.modes[inputPos]
-        makeGameObjects();
-        //paused = false;
-        instructions.shown = true;
-    }
-}
-
 var paused = false;
 
 //TO DO: refactor enemy objects to use these - ***THIS DOESN"T WORK - this.x/y points to function, not what
@@ -371,11 +340,43 @@ document.addEventListener('keyup', function(e) {
     var key = allowedKeys[e.keyCode];
 
     if (!gameMode.mode) {
-        modeSelect.handleInput(key);
+        modeInput(key);
     } else if (!instructions.shown) {
-        instructions.handleInput(key);
+        instructInput(key);
     } else {
         player.handleInput(allowedKeys[e.keyCode]);    
     }
     
 });
+
+function modeInput(input) {
+    //up & down keys toggle focus
+    if (input === 'down' && inputPos === 0) {
+            inputPos += 1;
+    } else if (input === 'up' && inputPos === 1) {
+            inputPos = 0;
+    } else if (input === 'enter') {
+        //use json here for possible game modes instead of more if statements?
+        //ie gameMode.mode = modeSelect.possibleModes[inputPos];
+        if (inputPos === 0) {
+            gameMode.mode = 'human';
+        } else if (inputPos === 1) {
+            gameMode.mode = 'bug';
+        } else {
+            console.log("ERROR modeSelect.handleInput");
+        }
+    }
+};
+
+function instructInput(input){
+    if (input === 'right' && (inputPos === 0 || inputPos === 1)) {
+        inputPos += 1;
+    } else if (input === 'left' && (inputPos === 1 || inputPos === 2)) {
+        inputPos -= 1;
+    } else if (input === 'enter') {
+        difficulty.current = difficulty.modes[inputPos]
+        makeGameObjects();
+        //paused = false;
+        instructions.shown = true;
+    }
+}
