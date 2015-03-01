@@ -47,9 +47,8 @@ var Engine = (function(global) {
          */
         if (!modeSelect.gameMode) {
             requestAnimationFrame(modeSelect.render);
-        } else if (!modeSelect.instructionsShown) {
-            makeGameObjects();
-            modeSelect.showInstructions();
+        } else if (!instructions.shown) {
+            instructions.render();
         } else if (paused) {
             console.log("It's paused!");
         } else {
@@ -136,7 +135,7 @@ var Engine = (function(global) {
 
         //Clear canvas (to prevent images sticking above the water)
         ctx.clearRect(0,0,canvas.width, canvas.height);
-        //ctx.drawImage();
+
         for (row = 0; row < numRows; row++) {
             for (col = 0; col < numCols; col++) {
                 /* The drawImage function of the canvas' context element
@@ -189,7 +188,7 @@ var Engine = (function(global) {
             ctx.fillStyle = "black";
             ctx.strokeStyle = "black";
 
-            if (modeSelect.inputPos === 0) {
+            if (inputPos === 0) {
                 //highlight human mode
                 ctx.fillRect(canvas.width / 2 - 225,100,200,100);
 
@@ -199,7 +198,7 @@ var Engine = (function(global) {
                 //display human mode desc
                 ctx.font = "18pt Impact";
                 ctx.strokeText("Human", canvas.width / 2 + 125, 125);
-            } else if (modeSelect.inputPos === 1) {
+            } else if (inputPos === 1) {
                 //passive human mode
                 ctx.strokeRect(canvas.width / 2 - 225,100,200,100);
 
@@ -223,6 +222,34 @@ var Engine = (function(global) {
 
         }
     };
+
+    instructions.shown = false;
+    instructions.render = function () {
+        ctx.clearRect(0,0,canvas.width, canvas.height);
+
+        if (inputPos === 0) {
+            ctx.fillRect(canvas.width / 2 - 250, 200 , 150, 100);
+            ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);
+            ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
+            ctx.fillText("EASY", canvas.width / 2, 350)            
+        } else if (inputPos === 1) {
+            ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
+            ctx.fillRect(canvas.width / 2 -75, 200 , 150, 100);
+            ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
+            ctx.fillText("MEDIUM", canvas.width / 2, 350);            
+        } else if (inputPos === 2) {
+            ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
+            ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);
+            ctx.fillRect(canvas.width / 2 +100, 200 , 150, 100);
+            ctx.fillText("HARD", canvas.width / 2, 350);
+        }
+
+        ctx.fillText("Show Instructions based on game mode here", canvas.width / 2 , 100);
+        ctx.fillText("Press ENTER to select difficulty and start the game", canvas.width / 2, 400);
+        //paused = true;
+        //instructions.shown = true;
+    }
+    /*
     modeSelect.instructionsShown = false;
     modeSelect.showInstructions = function() {
         ctx.clearRect(0,0,canvas.width, canvas.height);
@@ -230,11 +257,10 @@ var Engine = (function(global) {
         ctx.fillText("Press ENTER to continue", canvas.width / 2, 200);
         paused = true;
         modeSelect.instructionsShown = true;
-    }
+    } */
     // TO DO: move mode select into here (instead of in main function), have it call itself (like in main function)
     function reset() {
         console.log("reset");
-
    }
 
     /* Go ahead and load all of the images we know we're going to need to
