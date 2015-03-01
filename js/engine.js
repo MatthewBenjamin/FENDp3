@@ -45,7 +45,7 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        if (!modeSelect.gameMode) {
+        if (!gameMode.mode) {
             requestAnimationFrame(modeSelect.render);
         } else if (!instructions.shown) {
             instructions.render();
@@ -178,13 +178,13 @@ var Engine = (function(global) {
 
     //TO DO: render/update function(s)? (refactor code in reset, move to render function)
     modeSelect.render = function () {
-        //if modeSelect.gameMode -> instructions screen, OR if gameMode === 'human' -> human instructions screen, etc. ?
+        //if gameMode.mode -> instructions screen, OR if gameMode === 'human' -> human instructions screen, etc. ?
         //else render modeSelect screen
 
         //clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
-        if (modeSelect.gameMode) {
+        if (gameMode.mode) {
         } else {
             ctx.font = "34pt Impact";
             ctx.textAlign = "center";
@@ -235,12 +235,12 @@ var Engine = (function(global) {
             ctx.fillRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
-            ctx.fillText("EASY", canvas.width / 2, 350)            
+            ctx.fillText("EASY", canvas.width / 2, 350)
         } else if (inputPos === 1) {
             ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.fillRect(canvas.width / 2 -75, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
-            ctx.fillText("MEDIUM", canvas.width / 2, 350);            
+            ctx.fillText("MEDIUM", canvas.width / 2, 350);
         } else if (inputPos === 2) {
             ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);

@@ -1,12 +1,49 @@
+/* *** TO DOs: ***
+1   add helper functions (refactor gen player and enemy classes) to
+    gameMode.human & gameMode.bug
+    move difficulty object into gameMode.diffculty
+2
+    Implement Gems
+        Human Mode: Generate upon next level(possibly with timer before appearing) - level and difficulty determine # and type
+            i.e. var i = x - level, for (var a =0; i, a+=1) {equation for randomly picking if gem and type based on difficulty}
+        Bug Mode: trigger potential generations occasionality based on dynamic levels
+3
+    Implement Stars
+        Human: generate upon next level(possibly with timer before appearing) - level and difficulty determine features (like gems) - star with player invinciblity upon contact
+        Bug: star kills all humans upon player contact
+4
+    Rocks
+        Human: generate upon next level based on level and difficulty like above
+                rock blocks player movement
+        Gem: generate the same way
+                detroys all humans that come into contact with it
+                possibly make it so player and hold onto and drop rocks later
+5
+    Character Selection
+        select which character sprite during initial game setup (after instructions?)
+6
+    Character Traits
+        different characters will have different traits
+        i.e. Health & Speed(hold down arrow keys - use keydown instead of keyup) for human mode
+                Speed & Attack for bug mode
+7
+    Character Creator
+        player assigns character sprite and trait points
+*/
 var modeSelect= {};
-modeSelect.gameMode;
-//var gameMode = {};
-//gameMode.mode;
-//gameMode.human;
-//gameMode.bug;
+//modeSelect.gameMode;
+
+//TO DO: add helper functions to
+//gameMode.human & gameMode.bug
+//move difficulty object into gameMode.diffculty ?
+var gameMode = {};
+gameMode.mode;
+gameMode.human = {};
+gameMode.bug = {};
+//gameMode.difficulty = {};
 var inputPos = 0;
 
-//features to implement: player characteristics: speed(?), health, attack (enemy mode)
+//features to implement: player characteristics: speed(?), health (human), attack (bug)
 
 // Higher difficulty --> more enemies, less health
 var difficulty = {}
@@ -25,11 +62,11 @@ modeSelect.handleInput = function(input) {
             inputPos = 0;
     } else if (input === 'enter') {
         //use json here for possible game modes instead of more if statements?
-        //ie modeSelect.gameMode = modeSelect.possibleModes[inputPos];
+        //ie gameMode.mode = modeSelect.possibleModes[inputPos];
         if (inputPos === 0) {
-            modeSelect.gameMode = 'human';
+            gameMode.mode = 'human';
         } else if (inputPos === 1) {
-            modeSelect.gameMode = 'bug';
+            gameMode.mode = 'bug';
         } else {
             console.log("ERROR modeSelect.handleInput");
         }
@@ -143,7 +180,7 @@ function makeEnemies() {
 
     //TO DO: put if statement inside Enemy function? is this less efficient?
     //OR put parameters in outside object-variables and point to them
-    if (modeSelect.gameMode === "human") {
+    if (gameMode.mode === "human") {
         //human mode
         var Enemy = function() {
             this.sprite = 'images/enemy-bug.png'; //different from bug mode
@@ -181,7 +218,7 @@ function makeEnemies() {
 
     //update method
     //combine?
-    if (modeSelect.gameMode === "human") { 
+    if (gameMode.mode === "human") { 
         Enemy.prototype.update = function (dt) {
             // You should multiply any movement by the dt parameter
             // which will ensure the game runs at the same speed for
@@ -238,7 +275,7 @@ function makeEnemies() {
 
 function makePlayer() {
 
-    if (modeSelect.gameMode === "human") {
+    if (gameMode.mode === "human") {
         var Player = function() {
             this.sprite = 'images/char-boy.png'; //different
             var startX = 200;   //diff ---are these variables necessary?
@@ -258,7 +295,7 @@ function makePlayer() {
 
     //update functions
     //diff
-    if (modeSelect.gameMode === "human") {
+    if (gameMode.mode === "human") {
         Player.prototype.update = function(dt) {
             //collision detection
             for (var e = 0; e < allEnemies.length; e++) {
@@ -333,7 +370,7 @@ document.addEventListener('keyup', function(e) {
 
     var key = allowedKeys[e.keyCode];
 
-    if (!modeSelect.gameMode) {
+    if (!gameMode.mode) {
         modeSelect.handleInput(key);
     } else if (!instructions.shown) {
         instructions.handleInput(key);
