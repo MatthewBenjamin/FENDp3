@@ -1,8 +1,14 @@
 var modeSelect= {};
 modeSelect.gameMode;
+//var gameMode = {};
+//gameMode.mode;
+//gameMode.human;
+//gameMode.bug;
 var inputPos = 0;
 
-// Higher difficulty --> more enemies
+//features to implement: player characteristics: speed(?), health, attack (enemy mode)
+
+// Higher difficulty --> more enemies, less health
 var difficulty = {}
 difficulty.current;
 difficulty.modes = {
@@ -70,118 +76,6 @@ var level;
 var allEnemies = [];
 var player;
 
-function makeHumanModePlayer () {
-    var Player = function() {
-        this.sprite = 'images/char-boy.png';
-        var startX = 200;
-        var startY = 300;
-        this.x = startX;
-        this.y = startY;
-    }
-
-    Player.prototype.update = function(dt) {
-        //collision detection
-        for (var e = 0; e < allEnemies.length; e++) {
-            if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
-                this.x = 200;
-                this.y = 300;
-            }
-        }
-    }
-
-    Player.prototype.render = function() {
-        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-    }
-
-    Player.prototype.handleInput = function (input) {
-        //x 100
-        //y 80
-        // ** TODO: if reach water, next level!
-        if (input === 'enter') {
-            if (paused) {
-                paused = false;
-            } else {
-                paused = true;
-            }
-        } 
-        if (!paused) {
-            if (input === 'up' && this.y !== -20) {
-                this.y -= 80;
-            } else if (input === 'down' && this.y !== 380) {
-                this.y += 80;
-            } else if (input === 'left' && this.x !== 0) {
-                this.x -= 100;
-            } else if (input === 'right' && this.x !== 400) {
-                this.x += 100;
-            }
-        }
-    }
-
-    // Now instantiate your objects.
-    // Place all enemy objects in an array called allEnemies
-    // Place the player object in a variable called player
-
-
-    player = new Player;
-}
-
-function makeBugModePlayer() {
-    // Now write your own player class
-    // This class requires an update(), render() and
-    // a handleInput() method.
-
-    var Player = function() {
-        this.sprite = 'images/enemy-bug.png';
-        var startX = 200;
-        var startY = 140;
-        this.x = startX;
-        this.y = startY;
-    }
-
-    Player.prototype.update = function(dt) {
-        //collision detection
-        for (var e = 0; e < allEnemies.length; e++) {
-            if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
-                //this won't work...or will need to be reset
-                //allEnemies[e].y = 1000;
-                //allEnemies[e].speed = 0;
-            }
-        }
-    }
-
-    Player.prototype.render = function() {
-        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-    }
-
-    Player.prototype.handleInput = function (input) {
-        //x 100
-        //y 80
-        // ** TODO: if reach water, next level!
-        if (input === 'enter') {
-            if (paused) {
-                paused = false;
-            } else {
-                paused = true;
-            }
-        } 
-        if (!paused) {
-            if (input === 'up' && this.y !== -20) {
-                this.y -= 80;
-            } else if (input === 'down' && this.y !== 380) {
-                this.y += 80;
-            } else if (input === 'left' && this.x !== 0) {
-                this.x -= 100;
-            } else if (input === 'right' && this.x !== 400) {
-                this.x += 100;
-            }
-        }
-    }
-
-
-
-    player = new Player;
-}
-
 //ROCKS, STARS, & GEMS should NOT occupy the same same (implement this after everything else works?)
 //Generate these objects in nextlevel function!
 //refactor gems help vars into Gem object?
@@ -246,31 +140,32 @@ var rows = [60, 140, 220];
 var columns = [0, 100, 200, 300, 400];
 
 function makeEnemies() {
+
+    //TO DO: put if statement inside Enemy function? is this less efficient?
+    //OR put parameters in outside object-variables and point to them
     if (modeSelect.gameMode === "human") {
         //human mode
         var Enemy = function() {
             this.sprite = 'images/enemy-bug.png'; //different from bug mode
             this.speed = this.randomSpeed(10,10); //same   TO DO: fine tune parameters
             this.x = this.startPos(-500, 400); //diff parameters
-            
-            this.y = this.randomLane(rows); //slightly diff
+            this.y = this.randomLane(rows); //same
         }
     } else {
          var Enemy = function() {
             this.sprite = 'images/char-boy.png'; // TO DO: make this random (select from all human pngs)
                                                  //different from human mode
             this.speed = this.randomSpeed(10,10); //same TO DO: fine tune parameters
-
-            this.x = this.randomLane(columns); 
-            this.y = this.startPos(500,1000);  //TO DO: fine tune parameters
+            this.x = this.randomLane(columns); //same
+            this.y = this.startPos(300,600);  //TO DO: fine tune parameters
         }
     }
 
     //same
     Enemy.prototype.randomSpeed = function (base, modifier) {
-        var defaultSpeed = base;
+        var base = base;
         var modifier = Math.floor(Math.random() * modifier + 1);
-        return defaultSpeed * modifier;   
+        return base * modifier;   
     }
 
     //same
@@ -280,8 +175,6 @@ function makeEnemies() {
 
     //same
     Enemy.prototype.randomLane = function (lanes) {
-            //y pixel values for each row (rounded)
-            //var rows = [60, 140, 220];
             var decision = Math.floor(Math.random() * lanes.length);
             return lanes[decision];            
     }
@@ -296,7 +189,7 @@ function makeEnemies() {
 
             // if enemy has traversed entire area, reset values (randomly)
             if (this.x > 505) {
-                this.x = -100
+                this.x = -100   //TO DO: make this random?
                 this.y = this.randomLane(rows);
                 this.speed = this.randomSpeed(10,10);
             } else {
@@ -312,7 +205,7 @@ function makeEnemies() {
                 this.speed = 0;
             }
             else if (this.y <= -20) {
-                this.y = 500;
+                this.y = 600;
             } else {
                 this.y -= this.speed * dt;
             }
@@ -341,16 +234,89 @@ function makeEnemies() {
     }
 }
 
+
+
+function makePlayer() {
+
+    if (modeSelect.gameMode === "human") {
+        var Player = function() {
+            this.sprite = 'images/char-boy.png'; //different
+            var startX = 200;   //diff ---are these variables necessary?
+            var startY = 300;   //diff
+            this.x = startX;    //same
+            this.y = startY;    //same
+        }
+    } else {
+        var Player = function() {
+            this.sprite = 'images/enemy-bug.png';   //diff
+            var startX = 200;   //diff
+            var startY = 140;   //diff
+            this.x = startX;    //same
+            this.y = startY;    //same
+        }
+    }
+
+    //update functions
+    //diff
+    if (modeSelect.gameMode === "human") {
+        Player.prototype.update = function(dt) {
+            //collision detection
+            for (var e = 0; e < allEnemies.length; e++) {
+                if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
+                    this.x = 200;
+                    this.y = 300;
+                }
+            }
+        }
+    } else {
+        Player.prototype.update = function(dt) {
+            //collision detection
+            for (var e = 0; e < allEnemies.length; e++) {
+                if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
+                    //this won't work...or will need to be reset
+                    //allEnemies[e].y = 1000;
+                    //allEnemies[e].speed = 0;
+                }
+            }
+        }        
+    }
+
+    //same
+    Player.prototype.render = function() {
+        ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    }
+
+    //same
+    Player.prototype.handleInput = function (input) {
+        //x 100
+        //y 80
+        // ** TODO: if reach water, next level!
+        if (input === 'enter') {
+            if (paused) {
+                paused = false;
+            } else {
+                paused = true;
+            }
+        } 
+        if (!paused) {
+            if (input === 'up' && this.y !== -20) {
+                this.y -= 80;
+            } else if (input === 'down' && this.y !== 380) {
+                this.y += 80;
+            } else if (input === 'left' && this.x !== 0) {
+                this.x -= 100;
+            } else if (input === 'right' && this.x !== 400) {
+                this.x += 100;
+            }
+        }
+    }
+
+    player = new Player;
+}
 //one function to make all game objects, or just one function for, enemy, player, star, etc. ?
 function makeGameObjects() {
     makeEnemies();
-    if (modeSelect.gameMode === "human") {
-        makeHumanModePlayer();
-    } else if (modeSelect.gameMode === "bug") {
-        makeBugModePlayer();
-    } else {
-        console.log("ERROR");
-    }
+    makePlayer();
 }
 
 // This listens for key presses and sends the keys to your
