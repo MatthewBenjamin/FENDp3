@@ -6,7 +6,8 @@
     Implement Gems
         Human Mode: Generate upon next level(possibly with timer before appearing) - level and difficulty determine # and type
             i.e. var i = x - level, for (var a =0; i, a+=1) {equation for randomly picking if gem and type based on difficulty}
-        Bug Mode: trigger potential generations occasionality based on dynamic levels
+        Bug Mode: trigger potential generations occasionality based on dynamic levels (when certain score is reached)
+            so, the better you play the higher potential for ALL items(score mod # based on difficulty & level)
 
         different gems give different benefits? - points, extra points when killing enemies, extra health/attack
 3
@@ -73,6 +74,7 @@ var randomArray = function(inputArray) {
 //TO DO: implement level function in human mode, higher level --> faster enemies
 //bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
 var level;
+var score;
 var allEnemies = [];
 var allGems = [];
 var player;
@@ -234,26 +236,32 @@ function makeEnemies() {
     }
 }
 
+var upperBounds;
+var lowerBounds;
 
+function playerSprite() {
+    if (gameMode.mode === 'human') {
+        //TO DO: add charaction sprite selection(use object points to sprites)
+        return 'images/char-boy.png';
+    } else {
+        return 'images/enemy-bug.png';
+    }
+}
+
+function startY() {
+    if (gameMode.mode === 'human') {
+        return 300;
+    } else {
+        return 140;
+    }
+}
 
 function makePlayer() {
 
-    if (gameMode.mode === "human") {
-        var Player = function() {
-            this.sprite = 'images/char-boy.png'; //different
-            var startX = 200;   //diff ---are these variables necessary?
-            var startY = 300;   //diff
-            this.x = startX;    //same
-            this.y = startY;    //same
-        }
-    } else {
-        var Player = function() {
-            this.sprite = 'images/enemy-bug.png';   //diff
-            var startX = 200;   //diff
-            var startY = 140;   //diff
-            this.x = startX;    //same
-            this.y = startY;    //same
-        }
+    var Player = function() {
+        this.sprite = playerSprite();
+        this.x = 200;
+        this.y = startY();
     }
 
     //update functions
@@ -267,18 +275,16 @@ function makePlayer() {
                     this.y = 300;
                 }
             }
+            if (this.y === -100) {
+                //set off next level here
+                this.x = 200;
+                this.y = 300;
+            }
         }
     } else {
-        Player.prototype.update = function(dt) {
-            //collision detection
-            for (var e = 0; e < allEnemies.length; e++) {
-                if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
-                    //this won't work...or will need to be reset
-                    //allEnemies[e].y = 1000;
-                    //allEnemies[e].speed = 0;
-                }
-            }
-        }        
+        //TO DO: put something here or edit game engine
+        //put score check to set up dyanmic level items here? --> yes b/c no objects = nowhere else to perform update(except engine)?
+        Player.prototype.update = function(dt) {}
     }
 
     //same
@@ -287,6 +293,13 @@ function makePlayer() {
     }
 
     //same
+    if (gameMode.mode === "human") {
+        upperBounds = -100;
+        lowerBounds = 380;
+    } else {
+        upperBounds = 60;
+        lowerBounds = 220;
+    }
     Player.prototype.handleInput = function (input) {
         //x 100
         //y 80
@@ -299,9 +312,9 @@ function makePlayer() {
             }
         } 
         if (!paused) {
-            if (input === 'up' && this.y !== -20) {
+            if (input === 'up' && this.y !== upperBounds) {
                 this.y -= 80;
-            } else if (input === 'down' && this.y !== 380) {
+            } else if (input === 'down' && this.y !== lowerBounds) {
                 this.y += 80;
             } else if (input === 'left' && this.x !== 0) {
                 this.x -= 100;
