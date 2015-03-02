@@ -3,6 +3,7 @@
 Basic Functionality:
 -levels
 -score
+gameInfo object with level & score attributes (also gameMode attribute?)
 
 1   add helper functions (refactor gen player and enemy classes) to
     gameMode.human & gameMode.bug
@@ -78,8 +79,10 @@ var randomArray = function(inputArray) {
 
 //TO DO: implement level function in human mode, higher level --> faster enemies
 //bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
-var level;
-var score;
+var level = 1;
+var levelUp = false;
+
+//var score;
 var allEnemies = [];
 var allGems = [];
 var player;
@@ -230,6 +233,12 @@ function makeEnemies() {
                 this.x += this.speed * dt;
             }
         }
+        Enemy.prototype.levelUp = function() {
+            this.x = this.startPos(startMin, startMax);
+            this.y = this.randomLane(rows);
+            //TO DO: change speed update to react to difficulty and level
+            this.speed += 10 + level;
+        }
     } else {
         //bug mode
         Enemy.prototype.update = function (dt) {
@@ -312,10 +321,13 @@ function makePlayer() {
                 }
             }
             if (this.y === -100) {
-                //set off next level here
-                this.x = 200;
-                this.y = 300;
+                levelUp = true;
             }
+        }
+        Player.prototype.levelUp = function() {
+            this.score += allEnemies.length + level;
+            this.x = 200;
+            this.y = 300;
         }
     } else {
         //TO DO: put something here or edit game engine

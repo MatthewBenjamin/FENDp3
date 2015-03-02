@@ -51,6 +51,8 @@ var Engine = (function(global) {
             instructions.render();
         } else if (paused) {
             console.log("It's paused!");
+        } else if (levelUp) {
+            nextLevel();
         } else {
             update(dt);
             render();            
@@ -170,6 +172,13 @@ var Engine = (function(global) {
         player.render();
     }
 
+    function nextLevel() {
+        allEnemies.forEach(function(enemy) {
+            enemy.levelUp();
+        });
+        player.levelUp();
+        levelUp = false;
+    }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
      * - those sorts of things. It's only called once by the init() method.
