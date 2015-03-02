@@ -163,14 +163,13 @@ enemySprites.choose = function() {
     }
 }
 
-var startMin;
-var startMax;
-
 //TO DO: fine tune startMin/Max, speed params
 function makeEnemies() {
-    if (gameMode === 'human') {
-        startMin = -500
-        startMax = 300
+    var startMin;
+    var startMax;
+    if (gameMode.mode === 'human') {
+        startMin = -100
+        startMax = 500
     } else {
         startMin = 300
         startMax = 600
@@ -205,10 +204,10 @@ function makeEnemies() {
 
     //same
     Enemy.prototype.startPos = function(min, max) {
-        return Math.floor(Math.random() * (max -min + 1) + min);   
+        return Math.floor(Math.random() * (max - min + 1) + min);   
     }
 
-    //do I need this? randomArray
+    //TO DO: do I need this? randomArray
     Enemy.prototype.randomLane = function (lanes) {
             var decision = Math.floor(Math.random() * lanes.length);
             return lanes[decision];            
