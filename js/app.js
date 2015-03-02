@@ -248,11 +248,13 @@ function makeEnemies() {
                     this.y = this.startPos(500,1000);
                     this.sprite = this.chooseSprite();
                     this.speed += 10;
+                    player.score += 1;
                 }
                 else if (this.y <= -200) {
                     this.y = this.startPos(500,1000);
                     this.sprite = this.chooseSprite();
                     this.speed += 10;
+                    player.score -= 1;
                 } else {
                     this.y -= this.speed * dt;
                 }
@@ -307,6 +309,7 @@ function makePlayer() {
         this.sprite = playerSprite();
         this.x = 200;
         this.y = startY();
+        this.score = 0;
     }
 
     //update functions
@@ -318,6 +321,7 @@ function makePlayer() {
                 if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
                     this.x = 200;
                     this.y = 300;
+                    this.score = 0;
                 }
             }
             if (this.y === -100) {
@@ -339,6 +343,7 @@ function makePlayer() {
     //same
     Player.prototype.render = function() {
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+        ctx.fillText("SCORE: " + this.score, 50, 40);
     }
 
     //same
