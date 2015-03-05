@@ -165,6 +165,10 @@ var Engine = (function(global) {
             gem.render();
         });
 
+        allRocks.forEach(function(rock) {
+            rock.render();
+        });
+
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
@@ -180,6 +184,7 @@ var Engine = (function(global) {
         });
         player.levelUp();
         generateGems();
+        generateRocks();
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen

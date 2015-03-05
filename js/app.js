@@ -192,15 +192,20 @@ var Star = function() {
 }
 
 var Rock = function() {
-    //TO DO:
-    //rocks appear at the beginning of a new level (don't appear randomly like stars and gems)
-    //random chance that they appear (goes up with difficulty/level)
-    //this.x = randomRow();
-    //this.y = randomCol();
-    //blocks player movement (but not enemy movement)
-    //this.x = this.randomX() -OR- randomX(); and use randomX for Stars, rocks, and gems
-    //this.y same as this.x but separate Y function
+    this.x = randomArray(gameInfo.columns);
+    this.y = randomArray(gameInfo.rows);
+    this.sprite = 'images/Rock.png';
 }
+
+Rock.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+}
+
+function generateRocks() {
+    allRocks = [];
+    allRocks.push(new Rock);    
+}
+
 
 var enemySprites = {};
 enemySprites.bug = [
@@ -420,6 +425,8 @@ function makePlayer() {
         upperBounds = 60;
         lowerBounds = 220;
     }
+
+    //TO DO: refactor to use helper functions, i.e. this.moveUp, this.moveDown, etc.
     Player.prototype.handleInput = function (input) {
         //x 100
         //y 80
@@ -450,6 +457,7 @@ function makeGameObjects() {
     makeEnemies();
     makePlayer();
     generateGems();
+    generateRocks();
 }
 
 // This listens for key presses and sends the keys to your
