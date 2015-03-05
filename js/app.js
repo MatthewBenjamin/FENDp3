@@ -98,11 +98,34 @@ var randomArray = function(inputArray) {
 
 var allEnemies = [];
 var allGems = [];
+var allRocks = [];
+var allStars = [];
 var player;
 
 //ROCKS, STARS, & GEMS should NOT occupy the same same (implement this after everything else works?)
 //Generate these objects in nextlevel function!
 //refactor gems help vars into Gem object?
+
+//refactor player object to use this function?
+function itemCollision (targetX, targetY, itemType) {
+    for (var g = 0; g < allGems.length; g ++) {
+        if (targetX === allGems[g].x && targetY === allGems[g].y) {
+            return true;
+        }
+    }
+    for (var r = 0; r < allRocks.length; r ++) {
+        if (targetX === allRocks[r].x && targetY === allRocks[r].y) {
+            return true;
+        }
+    }
+    for (var s = 0; s < allStars.length; s ++) {
+        if (targetX === allStars[s].x && targetY === allStars[s].y) {
+            return true;
+        }
+    }
+    
+}
+
 var gemSprites = {
     0 : 'images/Gem Orange.png',
     1 : 'images/Gem Green.png',
@@ -131,6 +154,7 @@ Gem.prototype.render = function() {
 }
 
 var randomGem;
+var newGem;
 function generateGems() {
     //TO DO: make genAttempts global to vary it based on difficulty? or just vary success rate?
     //TO DO: 2 gems can be in same location! add collision detection
@@ -139,11 +163,18 @@ function generateGems() {
         randomGem = Math.random()
         console.log(randomGem);
         if (randomGem >= .4 && randomGem < .65) {
-            allGems.push(new Gem(0));
+            newGem = new Gem(0);
+            if (!itemCollision(newGem.x, newGem.y, null)) {
+                allGems.push(new Gem(0));
+            }
         } else if (randomGem >= .65 && randomGem < .85) {
-            allGems.push(new Gem(1));
+            if (!itemCollision(newGem.x, newGem.y, null)) {
+                allGems.push(new Gem(1));
+            }
         } else if (randomGem >= .85) {
-            allGems.push(new Gem(2));
+            if (!itemCollision(newGem.x, newGem.y, null)) {
+                allGems.push(new Gem(2));
+            }
         }
     }
 }
