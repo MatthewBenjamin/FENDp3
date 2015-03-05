@@ -114,13 +114,13 @@ var gemPoints = {
     1 : 10,
     2 : 20
 }
-var Gem = function() {
+var Gem = function(type) {
     //TO DO:
     //pop up randomly like stars but more likely
     // randomly pick value 0 - 2
     //this.gemClass = Math.floor(Math.random() * 3); change this to make higher classes rarer or incoporate into generateGems function
-    this.sprite = gemSprites[0];
-    //this.points/value = gemPoints[gemClass]
+    this.sprite = gemSprites[type];
+    this.points = gemPoints[type];
     this.x = randomArray(gameInfo.columns); //200; //randomRow;
     this.y = randomArray(gameInfo.rows); //randomCol;
     // ----update to check for collision (or put in player update?)
@@ -130,16 +130,23 @@ Gem.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
 
+var randomGem;
 function generateGems() {
     //TO DO: make genAttempts global to vary it based on difficulty? or just vary success rate?
-    var genAttempts = 5;
-    for (var i=0; i < genAttempts; i++) {
-
+    //TO DO: 2 gems can be in same location! add collision detection
+    allGems = []
+    for (var i=0; i < 5; i++) {
+        randomGem = Math.random()
+        console.log(randomGem);
+        if (randomGem >= .4 && randomGem < .65) {
+            allGems.push(new Gem(0));
+        } else if (randomGem >= .65 && randomGem < .85) {
+            allGems.push(new Gem(1));
+        } else if (randomGem >= .85) {
+            allGems.push(new Gem(2));
+        }
     }
-    allGems.push(new Gem);
 }
-
-generateGems();
 
 var Star = function() {
     //TO DO:
@@ -338,7 +345,15 @@ function makePlayer() {
                 if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
                     this.x = 200;
                     this.y = 300;
+                    //TO DO: reset game upon death
                     this.score = 0;
+                }
+            }
+            for (var g = 0; g < allGems.length; g++) {
+                if (this.y === allGems[g].y && this.x === allGems[g].x) {
+                    //TO DO: modify score based on gem type
+                    allGems[g].y -= 1000;
+                    this.score += allGems[g].points;
                 }
             }
             if (this.y === -100) {
@@ -401,6 +416,7 @@ function makePlayer() {
 function makeGameObjects() {
     makeEnemies();
     makePlayer();
+    generateGems();
 }
 
 // This listens for key presses and sends the keys to your

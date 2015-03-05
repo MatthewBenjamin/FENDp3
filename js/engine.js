@@ -179,6 +179,7 @@ var Engine = (function(global) {
             enemy.levelUp();
         });
         player.levelUp();
+        generateGems();
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
