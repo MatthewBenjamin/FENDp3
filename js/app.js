@@ -165,15 +165,17 @@ function generateGems() {
         if (randomGem >= .4 && randomGem < .65) {
             newGem = new Gem(0);
             if (!itemCollision(newGem.x, newGem.y, null)) {
-                allGems.push(new Gem(0));
+                allGems.push(newGem);
             }
         } else if (randomGem >= .65 && randomGem < .85) {
+             newGem = new Gem(1);
             if (!itemCollision(newGem.x, newGem.y, null)) {
-                allGems.push(new Gem(1));
+                allGems.push(newGem);
             }
         } else if (randomGem >= .85) {
+             newGem = new Gem(2);
             if (!itemCollision(newGem.x, newGem.y, null)) {
-                allGems.push(new Gem(2));
+                allGems.push(newGem);
             }
         }
     }
