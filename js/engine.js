@@ -45,13 +45,13 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        if (!gameMode.mode) {
+        if (!gameInfo.mode) {
             requestAnimationFrame(modeSelect.render);
         } else if (!instructions.shown) {
             instructions.render();
-        } else if (paused) {
+        } else if (gameInfo.paused) {
             console.log("It's paused!");
-        } else if (levelUp) {
+        } else if (gameInfo.levelUp) {
             nextLevel();
         } else {
             update(dt);
@@ -173,11 +173,12 @@ var Engine = (function(global) {
     }
 
     function nextLevel() {
+        gameInfo.levelUp = false;
+        gameInfo.level ++;
         allEnemies.forEach(function(enemy) {
             enemy.levelUp();
         });
         player.levelUp();
-        levelUp = false;
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
@@ -192,7 +193,7 @@ var Engine = (function(global) {
         //clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
-        if (gameMode.mode) {
+        if (gameInfo.mode) {
         } else {
             ctx.font = "34pt Impact";
             ctx.textAlign = "center";

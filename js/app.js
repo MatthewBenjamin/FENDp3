@@ -47,27 +47,43 @@ var modeSelect= {};
 //gameMode.human & gameMode.bug
 //move difficulty object into gameMode.diffculty ?
 var gameMode = {};
-gameMode.mode;
+//gameMode.mode;
 gameMode.human = {};
 gameMode.bug = {};
 //gameMode.difficulty = {};
 var inputPos = 0;
 
-//features to implement: player characteristics: speed(?), health (human), attack (bug)
-
-// Higher difficulty --> more enemies, less health
-var difficulty = {}
-difficulty.current;
-difficulty.modes = {
+//TO DO: ??? store score(?), & helper functions(?) in gameInfo object ???
+var gameInfo = {}
+gameInfo.level = 1;
+gameInfo.levelUp = false;
+//gameInfo.score = 0;
+gameInfo.mode;
+gameInfo.difficulty = {}
+gameInfo.difficulty.current;
+gameInfo.difficulty.modes = {
     0 : "easy",
     1 : "medium",
     2 : "hard"
 }
-var instructions = {}
-var paused = false;
+gameInfo.rows = [60, 140, 220];
+gameInfo.columns = [0, 100, 200, 300, 400];
+gameInfo.paused = false;
+//features to implement: player characteristics: speed(?), health (human), attack (bug)
 
-var rows = [60, 140, 220];
-var columns = [0, 100, 200, 300, 400];
+// Higher difficulty --> more enemies, less health
+//var difficulty = {}
+//difficulty.current;
+//difficulty.modes = {
+//    0 : "easy",
+//    1 : "medium",
+//    2 : "hard"
+//}
+var instructions = {}
+//var paused = false;
+
+//var rows = [60, 140, 220];
+//var columns = [0, 100, 200, 300, 400];
 
 //TO DO: refactor enemy objects to use these - ***THIS DOESN"T WORK - this.x/y points to function, not what
 //the function returns
@@ -79,10 +95,7 @@ var randomArray = function(inputArray) {
 
 //TO DO: implement level function in human mode, higher level --> faster enemies
 //bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
-var level = 1;
-var levelUp = false;
 
-//var score;
 var allEnemies = [];
 var allGems = [];
 var player;
@@ -108,8 +121,8 @@ var Gem = function() {
     //this.gemClass = Math.floor(Math.random() * 3); change this to make higher classes rarer or incoporate into generateGems function
     this.sprite = gemSprites[0];
     //this.points/value = gemPoints[gemClass]
-    this.x = randomArray(columns); //200; //randomRow;
-    this.y = randomArray(rows); //randomCol;
+    this.x = randomArray(gameInfo.columns); //200; //randomRow;
+    this.y = randomArray(gameInfo.rows); //randomCol;
     // ----update to check for collision (or put in player update?)
 }
 
@@ -159,7 +172,7 @@ enemySprites.bug = [
 ]
 enemySprites.human = 'images/enemy-bug.png'
 enemySprites.choose = function() {
-    if (gameMode.mode === 'human') {
+    if (gameInfo.mode === 'human') {
         return enemySprites.human;
     } else {
         return randomArray(enemySprites.bug);
@@ -170,7 +183,7 @@ enemySprites.choose = function() {
 function makeEnemies() {
     var startMin;
     var startMax;
-    if (gameMode.mode === 'human') {
+    if (gameInfo.mode === 'human') {
         startMin = -100
         startMax = 500
     } else {
@@ -180,19 +193,22 @@ function makeEnemies() {
 
     var Enemy = function() {
         this.sprite = this.chooseSprite();
-        this.speed = this.randomSpeed(10,5);    //TO DO: var baseSpeed & modifySpeed ?
-        if (gameMode.mode === "human") {
+        this.speed = this.randomSpeed(10,5);    //TO DO: var baseSpeed & modifySpeed ? -->make function that can be used
+                                                                                    //to randomly set speed during 
+                                                                                    //initialization, enemy.update, &
+                                                                                    //levelUp
+        if (gameInfo.mode === "human") {
                 this.x = this.startPos(startMin, startMax);
-                this.y = this.randomLane(rows);
+                this.y = this.randomLane(gameInfo.rows);
 
         } else {
-            this.x = this.randomLane(columns);
+            this.x = this.randomLane(gameInfo.columns);
             this.y = this.startPos(startMin, startMax);
         }
     }
 
     Enemy.prototype.chooseSprite = function() {
-        if (gameMode.mode === 'human') {
+        if (gameInfo.mode === 'human') {
             return enemySprites.human;
         } else {
             return randomArray(enemySprites.bug);
@@ -200,7 +216,7 @@ function makeEnemies() {
     }
     //same
     Enemy.prototype.randomSpeed = function (base, modifier) {
-        var base = base;
+        console.log("Random Speed call");
         var modifier = Math.floor(Math.random() * modifier + 1);
         return base * modifier;   
     }
@@ -218,7 +234,7 @@ function makeEnemies() {
 
     //update method
     //combine?
-    if (gameMode.mode === "human") { 
+    if (gameInfo.mode === "human") { 
         Enemy.prototype.update = function (dt) {
             // You should multiply any movement by the dt parameter
             // which will ensure the game runs at the same speed for
@@ -227,17 +243,18 @@ function makeEnemies() {
             // if enemy has traversed entire area, reset values (randomly)
             if (this.x > 505) {
                 this.x = -100   //TO DO: make this random?
-                this.y = this.randomLane(rows);
-                this.speed = this.randomSpeed(10,10);
+                this.y = this.randomLane(gameInfo.rows);
+                //this.speed = this.randomSpeed(10,10);
             } else {
                 this.x += this.speed * dt;
             }
         }
         Enemy.prototype.levelUp = function() {
             this.x = this.startPos(startMin, startMax);
-            this.y = this.randomLane(rows);
+            this.y = this.randomLane(gameInfo.rows);
             //TO DO: change speed update to react to difficulty and level
-            this.speed += 10 + level;
+            // *** TO DO: this is a bug, enemy speed doesn't update correctly, fix this ***
+            this.speed += 10 + gameInfo.level;
         }
     } else {
         //bug mode
@@ -269,11 +286,11 @@ function makeEnemies() {
     }
 
     var numOfEnemies;
-    if (difficulty.current === 'easy') {
+    if (gameInfo.difficulty.current === 'easy') {
         numOfEnemies = 6;
-    } else if (difficulty.current === 'medium') {
+    } else if (gameInfo.difficulty.current === 'medium') {
         numOfEnemies = 9;
-    } else if (difficulty.current === 'hard') {
+    } else if (gameInfo.difficulty.current === 'hard') {
         numOfEnemies = 12;
     }
 
@@ -287,7 +304,7 @@ var upperBounds;
 var lowerBounds;
 
 function playerSprite() {
-    if (gameMode.mode === 'human') {
+    if (gameInfo.mode === 'human') {
         //TO DO: add charaction sprite selection(use object points to sprites)
         return 'images/char-boy.png';
     } else {
@@ -296,7 +313,7 @@ function playerSprite() {
 }
 
 function startY() {
-    if (gameMode.mode === 'human') {
+    if (gameInfo.mode === 'human') {
         return 300;
     } else {
         return 140;
@@ -314,7 +331,7 @@ function makePlayer() {
 
     //update functions
     //diff
-    if (gameMode.mode === "human") {
+    if (gameInfo.mode === "human") {
         Player.prototype.update = function(dt) {
             //collision detection
             for (var e = 0; e < allEnemies.length; e++) {
@@ -325,13 +342,13 @@ function makePlayer() {
                 }
             }
             if (this.y === -100) {
-                levelUp = true;
+                gameInfo.levelUp = true;
+                this.x = 200;
+                this.y = 300;
             }
         }
         Player.prototype.levelUp = function() {
-            this.score += allEnemies.length + level;
-            this.x = 200;
-            this.y = 300;
+            this.score += allEnemies.length + gameInfo.level;
         }
     } else {
         //TO DO: put something here or edit game engine
@@ -344,10 +361,11 @@ function makePlayer() {
     Player.prototype.render = function() {
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
         ctx.fillText("SCORE: " + this.score, 50, 40);
+        ctx.fillText("LEVEL: " + gameInfo.level, 300, 40);
     }
 
     //same
-    if (gameMode.mode === "human") {
+    if (gameInfo.mode === "human") {
         upperBounds = -100;
         lowerBounds = 380;
     } else {
@@ -357,15 +375,14 @@ function makePlayer() {
     Player.prototype.handleInput = function (input) {
         //x 100
         //y 80
-        // ** TODO: if reach water, next level!
         if (input === 'enter') {
-            if (paused) {
-                paused = false;
+            if (gameInfo.paused) {
+                gameInfo.paused = false;
             } else {
-                paused = true;
+                gameInfo.paused = true;
             }
         } 
-        if (!paused) {
+        if (!gameInfo.paused) {
             if (input === 'up' && this.y !== upperBounds) {
                 this.y -= 80;
             } else if (input === 'down' && this.y !== lowerBounds) {
@@ -400,7 +417,7 @@ document.addEventListener('keyup', function(e) {
 
     var key = allowedKeys[e.keyCode];
 
-    if (!gameMode.mode) {
+    if (!gameInfo.mode) {
         modeInput(key);
     } else if (!instructions.shown) {
         instructInput(key);
@@ -418,11 +435,11 @@ function modeInput(input) {
             inputPos = 0;
     } else if (input === 'enter') {
         //use json here for possible game modes instead of more if statements?
-        //ie gameMode.mode = modeSelect.possibleModes[inputPos];
+        //ie gameInfo.mode = modeSelect.possibleModes[inputPos];
         if (inputPos === 0) {
-            gameMode.mode = 'human';
+            gameInfo.mode = 'human';
         } else if (inputPos === 1) {
-            gameMode.mode = 'bug';
+            gameInfo.mode = 'bug';
         } else {
             console.log("ERROR modeSelect.handleInput");
         }
@@ -435,7 +452,7 @@ function instructInput(input){
     } else if (input === 'left' && (inputPos === 1 || inputPos === 2)) {
         inputPos -= 1;
     } else if (input === 'enter') {
-        difficulty.current = difficulty.modes[inputPos]
+        gameInfo.difficulty.current = gameInfo.difficulty.modes[inputPos]
         makeGameObjects();
         //paused = false;
         instructions.shown = true;
