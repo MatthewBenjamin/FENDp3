@@ -90,6 +90,8 @@ var Engine = (function(global) {
      * on the entities themselves within your app.js file).
      */
     function update(dt) {
+        //TO DO: is this the right spot for generateStars?
+        generateStars();
         updateEntities(dt);
     }
 
@@ -104,7 +106,10 @@ var Engine = (function(global) {
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        player.update();
+        allItems.stars.forEach(function(star) {
+            star.update(dt);
+        })
+        player.update(dt);
     }
 
     /* This function initially draws the "game level", it will then call
@@ -161,14 +166,17 @@ var Engine = (function(global) {
         /* Loop through all of the objects within the allEnemies array and call
          * the render function you have defined.
          */
-        allGems.forEach(function(gem) {
+        allItems.gems.forEach(function(gem) {
             gem.render();
         });
 
-        allRocks.forEach(function(rock) {
+        allItems.rocks.forEach(function(rock) {
             rock.render();
         });
 
+        allItems.stars.forEach(function(star) {
+            star.render();
+        })
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });

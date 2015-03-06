@@ -97,9 +97,10 @@ var randomArray = function(inputArray) {
 //bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
 
 var allEnemies = [];
-var allGems = [];
-var allRocks = [];
-var allStars = [];
+var allItems = {}
+allItems.gems = [];
+allItems.rocks = [];
+allItems.stars = [];
 var player;
 
 //ROCKS, STARS, & GEMS should NOT occupy the same same (implement this after everything else works?)
@@ -108,24 +109,21 @@ var player;
 
 //refactor player object to use this function?
 function itemCollision (targetX, targetY, itemType) {
-    for (var g = 0; g < allGems.length; g ++) {
-        if (targetX === allGems[g].x && targetY === allGems[g].y) {
-            return true;
+        for (var g = 0; g < allItems[itemType].length; g ++) {
+            if (targetX === allItems[itemType][g].x && targetY === allItems[itemType][g].y) {
+                console.log("Collision!",allItems[itemType][g])
+                return true;
+            }
         }
-    }
-    for (var r = 0; r < allRocks.length; r ++) {
-        if (targetX === allRocks[r].x && targetY === allRocks[r].y) {
-            return true;
-        }
-    }
-    for (var s = 0; s < allStars.length; s ++) {
-        if (targetX === allStars[s].x && targetY === allStars[s].y) {
-            return true;
-        }
-    }
-    
 }
-
+function allItemCollisions (targetX, targetY) {
+    var gemCol = itemCollision(targetX, targetY, 'gems');
+    var rockCol = itemCollision(targetX, targetY, 'rocks');
+    var starCol = itemCollision(targetX, targetY, 'stars');
+    if (gemCol || rockCol || starCol) {
+        return true;
+    }
+}
 var gemSprites = {
     0 : 'images/Gem Orange.png',
     1 : 'images/Gem Green.png',
@@ -158,24 +156,25 @@ var newGem;
 function generateGems() {
     //TO DO: make genAttempts global to vary it based on difficulty? or just vary success rate?
     //TO DO: 2 gems can be in same location! add collision detection
-    allGems = []
+    //TO DO: if collision, does not generate new gem, fix this? use recursion if so
+    allItems.gems = []
     for (var i=0; i < 5; i++) {
         randomGem = Math.random()
         console.log(randomGem);
         if (randomGem >= .4 && randomGem < .65) {
             newGem = new Gem(0);
-            if (!itemCollision(newGem.x, newGem.y, null)) {
-                allGems.push(newGem);
+            if (!allItemCollisions(newGem.x, newGem.y)) {
+                allItems.gems.push(newGem);
             }
         } else if (randomGem >= .65 && randomGem < .85) {
              newGem = new Gem(1);
-            if (!itemCollision(newGem.x, newGem.y, null)) {
-                allGems.push(newGem);
+            if (!allItemCollisions(newGem.x, newGem.y)) {
+                allItems.gems.push(newGem);
             }
         } else if (randomGem >= .85) {
              newGem = new Gem(2);
-            if (!itemCollision(newGem.x, newGem.y, null)) {
-                allGems.push(newGem);
+            if (!allItemCollisions(newGem.x, newGem.y)) {
+                allItems.gems.push(newGem);
             }
         }
     }
@@ -184,13 +183,36 @@ function generateGems() {
 var Star = function() {
     //TO DO:
     //randomly assign if (and when? - every tick X % chance star is created)
-    //this.sprite = 'images/Star.png';
-    //this.x = randomRow();
-    //this.y = randomCol();
+    this.sprite = 'images/Star.png';
+    this.x = randomArray(gameInfo.columns);
+    this.y = randomArray(gameInfo.rows);
+    this.lifespan = 500;
     //prototype render
     //if collision with player, player invincible for certain time period (possibly implement this in player update)
+
 }
 
+Star.prototype.render = function () {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);    
+}
+
+Star.prototype.update = function(dt) {
+    this.lifespan -= 50 * dt;
+    if (this.lifespan < 0) {
+        allItems.stars.splice(this);
+    }
+}
+
+function generateStars(){
+    console.log("Star?");
+    if (Math.random() < .001) {
+        var newStar = new Star;
+        if (!allItemCollisions(newStar.x, newStar.y)) {
+            allItems.stars.push(newStar);
+        }
+    }
+    // one ever 10secs? if (Math.random > .0001)
+}
 var Rock = function() {
     this.x = randomArray(gameInfo.columns);
     this.y = randomArray(gameInfo.rows);
@@ -202,8 +224,14 @@ Rock.prototype.render = function() {
 }
 
 function generateRocks() {
-    allRocks = [];
-    allRocks.push(new Rock);    
+    allItems.rocks = [];
+    for (var i = 0; i < 1; i++) {
+        var newRock = new Rock;
+
+        if (!allItemCollisions(newRock.x, newRock.y)) {
+            allItems.rocks.push(newRock);
+        }
+    }
 }
 
 
@@ -350,7 +378,7 @@ var lowerBounds;
 
 function playerSprite() {
     if (gameInfo.mode === 'human') {
-        //TO DO: add charaction sprite selection(use object points to sprites)
+        //TO DO: add charaction sprite selection(use object to point to sprites)
         return 'images/char-boy.png';
     } else {
         return 'images/enemy-bug.png';
@@ -372,6 +400,8 @@ function makePlayer() {
         this.x = 200;
         this.y = startY();
         this.score = 0;
+        this.star = false;
+        this.starLife;
     }
 
     //update functions
@@ -379,19 +409,35 @@ function makePlayer() {
     if (gameInfo.mode === "human") {
         Player.prototype.update = function(dt) {
             //collision detection
-            for (var e = 0; e < allEnemies.length; e++) {
-                if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
-                    this.x = 200;
-                    this.y = 300;
-                    //TO DO: reset game upon death
-                    this.score = 0;
+            //console.log("Player DT:", dt);
+            if (!this.star) {
+                for (var e = 0; e < allEnemies.length; e++) {
+                    if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
+                        this.x = 200;
+                        this.y = 300;
+                        //TO DO: reset game upon death
+                        this.score = 0;
+                    }
+                }
+            } else {
+                console.log(this.starLife, dt);
+                this.starLife -= 50 * dt;
+                if (this.starLife < 0) {
+                    this.star = false;
                 }
             }
-            for (var g = 0; g < allGems.length; g++) {
-                if (this.y === allGems[g].y && this.x === allGems[g].x) {
-                    //TO DO: modify score based on gem type
-                    allGems[g].y -= 1000;
-                    this.score += allGems[g].points;
+            for (var g = 0; g < allItems.gems.length; g++) {
+                if (this.y === allItems.gems[g].y && this.x === allItems.gems[g].x) {
+                    allItems.gems[g].y -= 1000;
+                    this.score += allItems.gems[g].points;
+                }
+            }
+            for (var g = 0; g < allItems.stars.length; g++) {
+                if (this.y === allItems.stars[g].y && this.x === allItems.stars[g].x) {
+                    allItems.stars.splice(allItems.stars[g]);
+                    this.star = true;
+                    this.starLife = 100;
+                    //console.log(this.starLife);
                 }
             }
             if (this.y === -100) {
@@ -427,6 +473,17 @@ function makePlayer() {
     }
 
     //TO DO: refactor to use helper functions, i.e. this.moveUp, this.moveDown, etc.
+    Player.prototype.move = function(input) {
+        if (input === 'up' && !itemCollision(this.x, this.y - 80, 'rocks')) {
+            this.y -= 80;
+        } else if (input === 'down' && !itemCollision(this.x, this.y + 80, 'rocks')) {
+            this.y += 80;
+        } else if (input === 'left' && !itemCollision(this.x - 100, this.y, 'rocks')) {
+            this.x -= 100;
+        } else if (input === 'right' && !itemCollision(this.x + 100, this.y, 'rocks')) {
+            this.x += 100;
+        }    
+    }
     Player.prototype.handleInput = function (input) {
         //x 100
         //y 80
@@ -436,16 +493,17 @@ function makePlayer() {
             } else {
                 gameInfo.paused = true;
             }
-        } 
+        }
+        //TO DO: refactor into move function?
         if (!gameInfo.paused) {
             if (input === 'up' && this.y !== upperBounds) {
-                this.y -= 80;
+                this.move(input);
             } else if (input === 'down' && this.y !== lowerBounds) {
-                this.y += 80;
+                this.move(input);
             } else if (input === 'left' && this.x !== 0) {
-                this.x -= 100;
+                this.move(input);
             } else if (input === 'right' && this.x !== 400) {
-                this.x += 100;
+                this.move(input);
             }
         }
     }
