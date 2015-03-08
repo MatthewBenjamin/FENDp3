@@ -92,6 +92,7 @@ var Engine = (function(global) {
     function update(dt) {
         //TO DO: is this the right spot for generateStars?
         generateStars();
+        generateHearts();
         updateEntities(dt);
     }
 
@@ -108,6 +109,9 @@ var Engine = (function(global) {
         });
         allItems.stars.forEach(function(star) {
             star.update(dt);
+        })
+        allItems.hearts.forEach(function(heart) {
+            heart.update(dt);
         })
         player.update(dt);
     }
@@ -177,6 +181,9 @@ var Engine = (function(global) {
         allItems.stars.forEach(function(star) {
             star.render();
         })
+        allItems.hearts.forEach(function(heart) {
+            heart.render();
+        })
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
@@ -193,6 +200,8 @@ var Engine = (function(global) {
         player.levelUp();
         generateGems();
         generateRocks();
+        allItems.stars = [];
+        allItems.hearts = [];
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
@@ -308,6 +317,8 @@ var Engine = (function(global) {
         'images/Gem Green.png',
         'images/Gem Blue.png',
         'images/Heart.png',
+        'images/Small Heart.png',
+        'images/Not-a-Heart.png',
         'images/Rock.png',
         'images/Star.png',
         'images/Selector.png'

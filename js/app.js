@@ -1,41 +1,32 @@
 /* *** TO DOs: ***
 
-Basic Functionality:
--levels
--score
 gameInfo object with level & score attributes (also gameMode attribute?)
 
-1   add helper functions (refactor gen player and enemy classes) to
-    gameMode.human & gameMode.bug
-    move difficulty object into gameMode.diffculty
+1   add helper functions (refactor gen player and enemy classes) to gameInfo object
+    how to organize this? gameInfo.difficulty.stuff
+                          gameInfo.player
+                          gameInfo.enemy
+
 2
-    Implement Gems
-        Human Mode: Generate upon next level(possibly with timer before appearing) - level and difficulty determine # and type
-            i.e. var i = x - level, for (var a =0; i, a+=1) {equation for randomly picking if gem and type based on difficulty}
+    Implement Gems for BUG mode
         Bug Mode: trigger potential generations occasionality based on dynamic levels (when certain score is reached)
             so, the better you play the higher potential for ALL items(score mod # based on difficulty & level)
-
-        different gems give different benefits? - points, extra points when killing enemies, extra health/attack
 3
-    Implement Stars
-        Human: generate upon next level(possibly with timer before appearing) - level and difficulty determine features (like gems) - star with player invinciblity upon contact
-        Bug: star kills all humans upon player contact
+    Rocks - MOSTLY DONE FOR HUMAN MODE
+        Human: generate a random amount based on difficulty, level, etc
+        Bug: generate the same way, but randomly instead of upon level up, has lifespan like stars
 4
-    Rocks
-        Human: generate upon next level based on level and difficulty like above
-                rock blocks player movement
-        Gem: generate the same way
-                detroys all humans that come into contact with it
-                possibly make it so player and hold onto and drop rocks later
-5
+    Death Screen
+
+Optional Stuff:
     Character Selection
         select which character sprite during initial game setup (after instructions?)
-6
+
     Character Traits
         different characters will have different traits
         i.e. Health & Speed(hold down arrow keys - use keydown instead of keyup) for human mode
                 Speed & Attack for bug mode
-7
+
     Character Creator
         player assigns character sprite and trait points
 */
@@ -53,7 +44,6 @@ gameMode.bug = {};
 //gameMode.difficulty = {};
 var inputPos = 0;
 
-//TO DO: ??? store score(?), & helper functions(?) in gameInfo object ???
 var gameInfo = {}
 gameInfo.level = 1;
 gameInfo.levelUp = false;
@@ -69,45 +59,23 @@ gameInfo.difficulty.modes = {
 gameInfo.rows = [60, 140, 220];
 gameInfo.columns = [0, 100, 200, 300, 400];
 gameInfo.paused = false;
-//features to implement: player characteristics: speed(?), health (human), attack (bug)
 
-// Higher difficulty --> more enemies, less health
-//var difficulty = {}
-//difficulty.current;
-//difficulty.modes = {
-//    0 : "easy",
-//    1 : "medium",
-//    2 : "hard"
-//}
 var instructions = {}
-//var paused = false;
 
-//var rows = [60, 140, 220];
-//var columns = [0, 100, 200, 300, 400];
-
-//TO DO: refactor enemy objects to use these - ***THIS DOESN"T WORK - this.x/y points to function, not what
-//the function returns
 var randomArray = function(inputArray) {
     var decision = Math.floor(Math.random() * inputArray.length);
     return inputArray[decision];
 }
 
 
-//TO DO: implement level function in human mode, higher level --> faster enemies
-//bug mode won't have discrete levels, instead it will progressively get harder as each enemy is killed
-
 var allEnemies = [];
 var allItems = {}
 allItems.gems = [];
 allItems.rocks = [];
 allItems.stars = [];
+allItems.hearts = [];
 var player;
 
-//ROCKS, STARS, & GEMS should NOT occupy the same same (implement this after everything else works?)
-//Generate these objects in nextlevel function!
-//refactor gems help vars into Gem object?
-
-//refactor player object to use this function?
 function itemCollision (targetX, targetY, itemType) {
         for (var g = 0; g < allItems[itemType].length; g ++) {
             if (targetX === allItems[itemType][g].x && targetY === allItems[itemType][g].y) {
@@ -136,10 +104,6 @@ var gemPoints = {
     2 : 20
 }
 var Gem = function(type) {
-    //TO DO:
-    //pop up randomly like stars but more likely
-    // randomly pick value 0 - 2
-    //this.gemClass = Math.floor(Math.random() * 3); change this to make higher classes rarer or incoporate into generateGems function
     this.sprite = gemSprites[type];
     this.points = gemPoints[type];
     this.x = randomArray(gameInfo.columns); //200; //randomRow;
@@ -204,14 +168,39 @@ Star.prototype.update = function(dt) {
 }
 
 function generateStars(){
-    console.log("Star?");
     if (Math.random() < .001) {
         var newStar = new Star;
         if (!allItemCollisions(newStar.x, newStar.y)) {
             allItems.stars.push(newStar);
         }
     }
-    // one ever 10secs? if (Math.random > .0001)
+}
+
+var Heart = function() {
+    this.sprite = 'images/Heart.png';
+    this.x = randomArray(gameInfo.columns);
+    this.y = randomArray(gameInfo.rows);
+    this.lifespan = 500;
+}
+
+Heart.prototype.render = function () {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);    
+}
+
+Heart.prototype.update = function(dt) {
+    this.lifespan -= 50 * dt;
+    if (this.lifespan < 0) {
+        allItems.hearts.splice(this);
+    }
+}
+
+function generateHearts(){
+    if (Math.random() < .001) {
+        var newHeart = new Heart;
+        if (!allItemCollisions(newHeart.x, newHeart.y)) {
+            allItems.hearts.push(newHeart);
+        }
+    }
 }
 var Rock = function() {
     this.x = randomArray(gameInfo.columns);
@@ -334,7 +323,7 @@ function makeEnemies() {
         Enemy.prototype.update = function (dt) {
                 //TO DO: proper speed modification
                 // if enemy has traversed entire area, LOSE
-                if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40) {
+                if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40 || player.star) {
                     this.y = this.startPos(500,1000);
                     this.sprite = this.chooseSprite();
                     this.speed += 10;
@@ -344,17 +333,18 @@ function makeEnemies() {
                     this.y = this.startPos(500,1000);
                     this.sprite = this.chooseSprite();
                     this.speed += 10;
-                    player.score -= 1;
+                    player.health -= 1;
                 } else {
                     this.y -= this.speed * dt;
                 }
             }
     }
 
-    // ***all below is the same***
-
     // Draw the enemy on the screen, required method for game
     Enemy.prototype.render = function() {
+        if (player.star) { //TO DO: only in bug mode
+            ctx.drawImage(Resources.get(player.starSprite), this.x, this.y);    
+        }
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
     }
 
@@ -373,9 +363,6 @@ function makeEnemies() {
     }
 }
 
-var upperBounds;
-var lowerBounds;
-
 function playerSprite() {
     if (gameInfo.mode === 'human') {
         //TO DO: add charaction sprite selection(use object to point to sprites)
@@ -385,7 +372,7 @@ function playerSprite() {
     }
 }
 
-function startY() {
+function findStartY() {
     if (gameInfo.mode === 'human') {
         return 300;
     } else {
@@ -393,30 +380,78 @@ function startY() {
     }
 }
 
+function findMaxHealth() {
+    if (gameInfo.difficulty.current === "easy") {
+        return 4;
+    } else if (gameInfo.difficulty.current === "medium") {
+        return 3;
+    } else {
+        return 2;
+    }
+}
 function makePlayer() {
+    var startY = findStartY();
+    var maxHealth = findMaxHealth();
 
     var Player = function() {
         this.sprite = playerSprite();
         this.x = 200;
-        this.y = startY();
+        this.y = startY;
         this.score = 0;
+        this.health = maxHealth;
+        this.heartSprite = 'images/Small Heart.png';
+        this.noHeartSprite = 'images/Not-a-Heart.png';
         this.star = false;
-        this.starLife;
+        this.starLife; //only human mode
+        this.starSprite = 'images/Selector.png'; //only human mode
     }
 
     //update functions
     //diff
+    Player.prototype.checkGems = function() {
+        for (var g = 0; g < allItems.gems.length; g++) {
+            if (this.y === allItems.gems[g].y && this.x === allItems.gems[g].x) {
+                this.score += allItems.gems[g].points;
+                allItems.gems.splice(g,1);
+            }
+        }    
+    }
+    Player.prototype.checkStars = function() {
+        for (var g = 0; g < allItems.stars.length; g++) {
+            if (this.y === allItems.stars[g].y && this.x === allItems.stars[g].x) {
+                allItems.stars.splice(g,1);
+                this.star = true;
+                this.starLife = 100;
+            }
+        }        
+    }
+    Player.prototype.checkHearts = function () {
+        for (var g = 0; g < allItems.hearts.length; g++) {
+            if (this.y === allItems.hearts[g].y && this.x === allItems.hearts[g].x) {
+                allItems.hearts.splice(g, 1);
+                if (this.health < maxHealth) {
+                    this.health += 1;
+                }
+            }
+        }  
+    }
+    Player.prototype.checkDeath = function() {
+        if (this.health <= 0) {
+            //TO DO: reset game upon death
+            this.x = 200;
+            this.y = startY;
+            this.score = 0;
+        }
+    }
     if (gameInfo.mode === "human") {
         Player.prototype.update = function(dt) {
             //collision detection
-            //console.log("Player DT:", dt);
             if (!this.star) {
                 for (var e = 0; e < allEnemies.length; e++) {
                     if (this.y === allEnemies[e].y && this.x < allEnemies[e].x + 80 && this.x > allEnemies[e].x -80) {
+                        this.health -= 1;
                         this.x = 200;
                         this.y = 300;
-                        //TO DO: reset game upon death
-                        this.score = 0;
                     }
                 }
             } else {
@@ -426,25 +461,20 @@ function makePlayer() {
                     this.star = false;
                 }
             }
-            for (var g = 0; g < allItems.gems.length; g++) {
-                if (this.y === allItems.gems[g].y && this.x === allItems.gems[g].x) {
-                    allItems.gems[g].y -= 1000;
-                    this.score += allItems.gems[g].points;
-                }
-            }
-            for (var g = 0; g < allItems.stars.length; g++) {
-                if (this.y === allItems.stars[g].y && this.x === allItems.stars[g].x) {
-                    allItems.stars.splice(allItems.stars[g]);
-                    this.star = true;
-                    this.starLife = 100;
-                    //console.log(this.starLife);
-                }
-            }
-            if (this.y === -100) {
+
+            if (this.y === -20) {
                 gameInfo.levelUp = true;
                 this.x = 200;
-                this.y = 300;
+                this.y = startY;
             }
+
+            this.checkGems();
+            this.checkStars();
+            if (this.health < maxHealth) {
+                this.checkHearts();
+            }
+            this.checkDeath();
+
         }
         Player.prototype.levelUp = function() {
             this.score += allEnemies.length + gameInfo.level;
@@ -453,19 +483,42 @@ function makePlayer() {
         //TO DO: put something here or edit game engine
         //put score check to set up dyanmic level items here? --> yes b/c no objects = nowhere else to perform update(except engine)?
         //TO DO: add direction attribute and change img according to direction
-        Player.prototype.update = function(dt) {}
+        Player.prototype.update = function(dt) {
+            if (this.star) {
+                this.star = false;
+            }
+            this.checkGems();
+            this.checkStars();
+            //TO DO: change so hearts may occur when enemy is killed
+            this.checkHearts();
+            this.checkDeath();
+        }
     }
 
     //same
     Player.prototype.render = function() {
+        if (this.star) {
+            ctx.drawImage(Resources.get(this.starSprite), this.x,this.y);
+        }
+        ctx.textAlign = "left";
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-        ctx.fillText("SCORE: " + this.score, 50, 40);
-        ctx.fillText("LEVEL: " + gameInfo.level, 300, 40);
+        ctx.fillText("SCORE: " + this.score, 0, 40);
+        //TO DO: remove level from bug mode
+        ctx.fillText("LEVEL: " + gameInfo.level, 202, 40);
+        for (var h = 0; h < maxHealth; h++) {
+            if (h < this.health) {
+                ctx.drawImage(Resources.get(this.heartSprite), 465 - (h * 35), -10);
+            } else {
+                ctx.drawImage(Resources.get(this.noHeartSprite), 465 - (h * 35), -10);
+            }
+        }
     }
 
     //same
+    var upperBounds;
+    var lowerBounds;
     if (gameInfo.mode === "human") {
-        upperBounds = -100;
+        upperBounds = -20;
         lowerBounds = 380;
     } else {
         upperBounds = 60;
