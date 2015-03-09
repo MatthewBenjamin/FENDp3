@@ -1,22 +1,13 @@
 /* *** TO DOs: ***
 
-gameInfo object with level & score attributes (also gameMode attribute?)
+****    add helper functions (refactor player and enemy classes) to gameInfo object
+        how to organize this? gameInfo.difficulty.stuff
+                          PlayerHelp.human/bug
+                          EnemyHelp.human/bug
 
-1   add helper functions (refactor gen player and enemy classes) to gameInfo object
-    how to organize this? gameInfo.difficulty.stuff
-                          gameInfo.player
-                          gameInfo.enemy
+**** possibly vary item frequency based on difficulty
 
-2
-    Implement Gems for BUG mode
-        Bug Mode: trigger potential generations occasionality based on dynamic levels (when certain score is reached)
-            so, the better you play the higher potential for ALL items(score mod # based on difficulty & level)
-3
-    Rocks - MOSTLY DONE FOR HUMAN MODE
-        Human: generate a random amount based on difficulty, level, etc
-        Bug: generate the same way, but randomly instead of upon level up, has lifespan like stars
-4
-    Death Screen
+****    Death Screen
 
 Optional Stuff:
     Character Selection
@@ -32,16 +23,7 @@ Optional Stuff:
 */
 
 var modeSelect= {};
-//modeSelect.gameMode;
 
-//TO DO: add helper functions to
-//gameMode.human & gameMode.bug
-//move difficulty object into gameMode.diffculty ?
-var gameMode = {};
-//gameMode.mode;
-gameMode.human = {};
-gameMode.bug = {};
-//gameMode.difficulty = {};
 var inputPos = 0;
 
 var gameInfo = {}
@@ -76,10 +58,10 @@ allItems.stars = [];
 allItems.hearts = [];
 var player;
 
+//Helper functions to check if x&y are occupied when generating items
 function itemCollision (targetX, targetY, itemType) {
         for (var g = 0; g < allItems[itemType].length; g ++) {
             if (targetX === allItems[itemType][g].x && targetY === allItems[itemType][g].y) {
-                console.log("Collision!",allItems[itemType][g])
                 return true;
             }
         }
@@ -88,7 +70,8 @@ function allItemCollisions (targetX, targetY) {
     var gemCol = itemCollision(targetX, targetY, 'gems');
     var rockCol = itemCollision(targetX, targetY, 'rocks');
     var starCol = itemCollision(targetX, targetY, 'stars');
-    if (gemCol || rockCol || starCol) {
+    var heartCol = itemCollision(targetX, targetY, 'hearts');
+    if (gemCol || rockCol || starCol || heartCol) {
         return true;
     }
 }
@@ -99,15 +82,16 @@ var gemSprites = {
 }
 
 var gemPoints = {
-    0 : 5,
-    1 : 10,
-    2 : 20
+    0 : 100,
+    1 : 250,
+    2 : 500
 }
 var Gem = function(type) {
     this.sprite = gemSprites[type];
     this.points = gemPoints[type];
     this.x = randomArray(gameInfo.columns); //200; //randomRow;
     this.y = randomArray(gameInfo.rows); //randomCol;
+    this.lifespan = 500;
     // ----update to check for collision (or put in player update?)
 }
 
@@ -115,16 +99,17 @@ Gem.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
 
-var randomGem;
-var newGem;
+Gem.prototype.update = function(dt) {
+    this.lifespan -= 50 * dt;
+    if (this.lifespan < 0) {
+        allItems.gems.splice(allItems.gems.indexOf(this), 1);
+    }
+}
 function generateGems() {
-    //TO DO: make genAttempts global to vary it based on difficulty? or just vary success rate?
-    //TO DO: 2 gems can be in same location! add collision detection
-    //TO DO: if collision, does not generate new gem, fix this? use recursion if so
-    allItems.gems = []
+    var randomGem;
+    var newGem;
     for (var i=0; i < 5; i++) {
-        randomGem = Math.random()
-        console.log(randomGem);
+        randomGem = Math.random();
         if (randomGem >= .4 && randomGem < .65) {
             newGem = new Gem(0);
             if (!allItemCollisions(newGem.x, newGem.y)) {
@@ -144,6 +129,27 @@ function generateGems() {
     }
 }
 
+function generateBugGems() {
+        var randomGem;
+        var newGem;
+        randomGem = Math.random()
+        if (randomGem >= .995 && randomGem < .998) {
+            newGem = new Gem(0);
+            if (!allItemCollisions(newGem.x, newGem.y)) {
+                allItems.gems.push(newGem);
+            }
+        } else if (randomGem >= .998 && randomGem < .999) {
+             newGem = new Gem(1);
+            if (!allItemCollisions(newGem.x, newGem.y)) {
+                allItems.gems.push(newGem);
+            }
+        } else if (randomGem >= .999) {
+             newGem = new Gem(2);
+            if (!allItemCollisions(newGem.x, newGem.y)) {
+                allItems.gems.push(newGem);
+            }
+        }
+}
 var Star = function() {
     //TO DO:
     //randomly assign if (and when? - every tick X % chance star is created)
@@ -163,7 +169,7 @@ Star.prototype.render = function () {
 Star.prototype.update = function(dt) {
     this.lifespan -= 50 * dt;
     if (this.lifespan < 0) {
-        allItems.stars.splice(this);
+        allItems.stars.splice(allItems.gems.indexOf(this), 1);
     }
 }
 
@@ -190,7 +196,7 @@ Heart.prototype.render = function () {
 Heart.prototype.update = function(dt) {
     this.lifespan -= 50 * dt;
     if (this.lifespan < 0) {
-        allItems.hearts.splice(this);
+        allItems.hearts.splice(allItems.hearts.indexOf(this), 1);
     }
 }
 
@@ -206,6 +212,7 @@ var Rock = function() {
     this.x = randomArray(gameInfo.columns);
     this.y = randomArray(gameInfo.rows);
     this.sprite = 'images/Rock.png';
+    this.lifespan = 500;
 }
 
 Rock.prototype.render = function() {
@@ -213,16 +220,33 @@ Rock.prototype.render = function() {
 }
 
 function generateRocks() {
-    allItems.rocks = [];
-    for (var i = 0; i < 1; i++) {
-        var newRock = new Rock;
+    for (var i = 0; i < 4; i++) {
+        if (Math.random() <= .2) {
+            var newRock = new Rock;
+            console.log("Maybe a rock...");
+            if (!allItemCollisions(newRock.x, newRock.y)) {
+                allItems.rocks.push(newRock);
+                console.log("Yes, a rock!");
+            }
+        }
+    }
+}
 
-        if (!allItemCollisions(newRock.x, newRock.y)) {
+function generateBugRocks() {
+    if (Math.random() < .001) {
+        var newRock = new Rock;
+        if (!allItemCollisions(newRock.x, newRock.y) && !(newRock.x === player.x && newRock.y === player.y)) {
             allItems.rocks.push(newRock);
         }
     }
 }
 
+Rock.prototype.update = function(dt) {
+    this.lifespan -= 50 * dt;
+    if (this.lifespan < 0) {
+        allItems.rocks.splice(allItems.rocks.indexOf(this), 1);
+    }
+}
 
 var enemySprites = {};
 enemySprites.bug = [
@@ -325,9 +349,9 @@ function makeEnemies() {
                 // if enemy has traversed entire area, LOSE
                 if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40 || player.star) {
                     this.y = this.startPos(500,1000);
+                    player.score += this.speed;
                     this.sprite = this.chooseSprite();
                     this.speed += 10;
-                    player.score += 1;
                 }
                 else if (this.y <= -200) {
                     this.y = this.startPos(500,1000);
@@ -440,7 +464,7 @@ function makePlayer() {
             //TO DO: reset game upon death
             this.x = 200;
             this.y = startY;
-            this.score = 0;
+            //this.score = 0;
         }
     }
     if (gameInfo.mode === "human") {
@@ -477,7 +501,11 @@ function makePlayer() {
 
         }
         Player.prototype.levelUp = function() {
-            this.score += allEnemies.length + gameInfo.level;
+            var scoreUp = 0;
+            for (var e = 0; e < allEnemies.length; e ++) {
+                scoreUp += allEnemies[e].speed;
+            }
+            this.score += scoreUp;
         }
     } else {
         //TO DO: put something here or edit game engine
@@ -503,8 +531,10 @@ function makePlayer() {
         ctx.textAlign = "left";
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
         ctx.fillText("SCORE: " + this.score, 0, 40);
-        //TO DO: remove level from bug mode
-        ctx.fillText("LEVEL: " + gameInfo.level, 202, 40);
+        //TO DO: refactor LEVEL text
+        if (gameInfo.mode === 'human') {
+            ctx.fillText("LEVEL: " + gameInfo.level, 202, 40);
+        }
         for (var h = 0; h < maxHealth; h++) {
             if (h < this.health) {
                 ctx.drawImage(Resources.get(this.heartSprite), 465 - (h * 35), -10);
@@ -525,7 +555,6 @@ function makePlayer() {
         lowerBounds = 220;
     }
 
-    //TO DO: refactor to use helper functions, i.e. this.moveUp, this.moveDown, etc.
     Player.prototype.move = function(input) {
         if (input === 'up' && !itemCollision(this.x, this.y - 80, 'rocks')) {
             this.y -= 80;
@@ -567,8 +596,10 @@ function makePlayer() {
 function makeGameObjects() {
     makeEnemies();
     makePlayer();
-    generateGems();
-    generateRocks();
+    if (gameInfo.mode === 'human') {
+        generateGems();
+        generateRocks();
+    }
 }
 
 // This listens for key presses and sends the keys to your
@@ -608,6 +639,7 @@ function modeInput(input) {
             gameInfo.mode = 'human';
         } else if (inputPos === 1) {
             gameInfo.mode = 'bug';
+            inputPos = 0;
         } else {
             console.log("ERROR modeSelect.handleInput");
         }

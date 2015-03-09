@@ -51,7 +51,7 @@ var Engine = (function(global) {
             instructions.render();
         } else if (gameInfo.paused) {
             console.log("It's paused!");
-        } else if (gameInfo.levelUp) {
+        } else if (gameInfo.levelUp) {  //move this to update?
             nextLevel();
         } else {
             update(dt);
@@ -93,6 +93,16 @@ var Engine = (function(global) {
         //TO DO: is this the right spot for generateStars?
         generateStars();
         generateHearts();
+        if (gameInfo.mode === 'bug') {
+            generateBugGems();
+            allItems.gems.forEach(function(gem) {
+                gem.update(dt);
+            })
+            generateBugRocks();
+            allItems.rocks.forEach(function(rock) {
+                rock.update(dt);
+            })
+        }
         updateEntities(dt);
     }
 
@@ -180,10 +190,12 @@ var Engine = (function(global) {
 
         allItems.stars.forEach(function(star) {
             star.render();
-        })
+        });
+
         allItems.hearts.forEach(function(heart) {
             heart.render();
-        })
+        });
+
         allEnemies.forEach(function(enemy) {
             enemy.render();
         });
@@ -198,21 +210,20 @@ var Engine = (function(global) {
             enemy.levelUp();
         });
         player.levelUp();
-        generateGems();
-        generateRocks();
         allItems.stars = [];
         allItems.hearts = [];
+        allItems.gems = [];
+        allItems.rocks = [];
+        generateGems();
+        generateRocks();            
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
      * - those sorts of things. It's only called once by the init() method.
      */
 
-    //TO DO: render/update function(s)? (refactor code in reset, move to render function)
+    //TO DO: refactor this function?
     modeSelect.render = function () {
-        //if gameMode.mode -> instructions screen, OR if gameMode === 'human' -> human instructions screen, etc. ?
-        //else render modeSelect screen
-
         //clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
@@ -282,19 +293,9 @@ var Engine = (function(global) {
 
         ctx.fillText("Show Instructions based on game mode here", canvas.width / 2 , 100);
         ctx.fillText("Press ENTER to select difficulty and start the game", canvas.width / 2, 400);
-        //paused = true;
-        //instructions.shown = true;
     }
-    /*
-    modeSelect.instructionsShown = false;
-    modeSelect.showInstructions = function() {
-        ctx.clearRect(0,0,canvas.width, canvas.height);
-        ctx.fillText("Show Instructions based on game mode here", canvas.width / 2 , 100);
-        ctx.fillText("Press ENTER to continue", canvas.width / 2, 200);
-        paused = true;
-        modeSelect.instructionsShown = true;
-    } */
-    // TO DO: move mode select into here (instead of in main function), have it call itself (like in main function)
+
+    // TO DO: refactor functions (i.e. moveSelect) into reset?
     function reset() {
         console.log("reset");
    }
