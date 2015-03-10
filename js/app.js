@@ -1,4 +1,5 @@
-/* *** TO DOs: ***
+
+ *** TO DOs: ***
 
 ****    add helper functions (refactor player and enemy classes) to gameInfo object
         how to organize this? gameInfo.difficulty.stuff
@@ -83,6 +84,16 @@ function allItemCollisions (targetX, targetY) {
 // *** TO DO: how to generate Gems and Rocks in different modes? Make 2 different functions to run in the game loop.
 // *** one function for each mode, that executes the proper item generatation function for that game mode
 
+/*
+generateLoopItems = {
+    human: function() {
+        genHearts();
+        genStars();
+        genGems(); //move gems from next level to loop
+    bug :
+        genRocks(); *** OR - all items, including rocks upon enemy death? in this case need                         different updateEntities() functions
+        *** other items generated upon enemy death
+*/
 var gemHelp = {};
 gemHelp.sprites = {
     0 : 'images/Gem Orange.png',
@@ -394,6 +405,7 @@ function makeEnemies() {
     }
 }
 
+//Helper objects instantiate player based on game mode and difficulty
 var playerHelp = {};
 playerHelp.sprite = {
     human: 'images/char-boy.png',

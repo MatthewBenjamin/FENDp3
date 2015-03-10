@@ -45,6 +45,7 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
+        // refactor so conditional isn't asked every game loop if possible (put game setup in reset)
         if (!gameInfo.mode) {
             requestAnimationFrame(modeSelect.render);
         } else if (!instructions.shown) {
@@ -91,6 +92,7 @@ var Engine = (function(global) {
      */
     function update(dt) {
         //TO DO: is this the right spot for generateStars?
+        // refactor into (2 versions of) one generate function, put in update entities
         generateStars();
         generateHearts();
         if (gameInfo.mode === 'bug') {
