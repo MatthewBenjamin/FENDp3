@@ -1,4 +1,4 @@
-
+/*
  *** TO DOs: ***
 
 ****    add helper functions (refactor player and enemy classes) to gameInfo object
