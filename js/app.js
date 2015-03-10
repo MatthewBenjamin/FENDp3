@@ -5,6 +5,8 @@
                           PlayerHelp.human/bug
                           EnemyHelp.human/bug
 
+**** add comments
+
 **** possibly vary item frequency based on difficulty
 
 ****    Death Screen
@@ -44,12 +46,14 @@ gameInfo.paused = false;
 
 var instructions = {}
 
+//Helper function randomly assign one value from all possible value of an array
 var randomArray = function(inputArray) {
     var decision = Math.floor(Math.random() * inputArray.length);
     return inputArray[decision];
 }
 
 
+//These store the game objects
 var allEnemies = [];
 var allItems = {}
 allItems.gems = [];
@@ -75,36 +79,47 @@ function allItemCollisions (targetX, targetY) {
         return true;
     }
 }
-var gemSprites = {
+
+// *** TO DO: how to generate Gems and Rocks in different modes? Make 2 different functions to run in the game loop.
+// *** one function for each mode, that executes the proper item generatation function for that game mode
+
+var gemHelp = {};
+gemHelp.sprites = {
     0 : 'images/Gem Orange.png',
     1 : 'images/Gem Green.png',
     2 : 'images/Gem Blue.png'
-}
-
-var gemPoints = {
+};
+gemHelp.points = {
     0 : 100,
     1 : 250,
     2 : 500
-}
+};
+
 var Gem = function(type) {
-    this.sprite = gemSprites[type];
-    this.points = gemPoints[type];
-    this.x = randomArray(gameInfo.columns); //200; //randomRow;
-    this.y = randomArray(gameInfo.rows); //randomCol;
+    //same
+    this.sprite = gemHelp.sprites[type];
+    this.points = gemHelp.points[type];
+    this.x = randomArray(gameInfo.columns);
+    this.y = randomArray(gameInfo.rows);
+    
+    //only for B mode
     this.lifespan = 500;
-    // ----update to check for collision (or put in player update?)
 }
 
+//same
 Gem.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
 
+//B mode
 Gem.prototype.update = function(dt) {
     this.lifespan -= 50 * dt;
     if (this.lifespan < 0) {
         allItems.gems.splice(allItems.gems.indexOf(this), 1);
     }
 }
+
+//H mode
 function generateGems() {
     var randomGem;
     var newGem;
@@ -129,6 +144,7 @@ function generateGems() {
     }
 }
 
+//B mode
 function generateBugGems() {
         var randomGem;
         var newGem;
@@ -150,16 +166,58 @@ function generateBugGems() {
             }
         }
 }
+
+
+var Rock = function() {
+    this.x = randomArray(gameInfo.columns);
+    this.y = randomArray(gameInfo.rows);
+    this.sprite = 'images/Rock.png';
+
+    //only B mode
+    this.lifespan = 500;
+}
+
+Rock.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+}
+
+//H mode
+function generateRocks() {
+    for (var i = 0; i < 4; i++) {
+        if (Math.random() <= .2) {
+            var newRock = new Rock;
+            console.log("Maybe a rock...");
+            if (!allItemCollisions(newRock.x, newRock.y)) {
+                allItems.rocks.push(newRock);
+                console.log("Yes, a rock!");
+            }
+        }
+    }
+}
+
+//B mode
+function generateBugRocks() {
+    if (Math.random() < .001) {
+        var newRock = new Rock;
+        if (!allItemCollisions(newRock.x, newRock.y) && !(newRock.x === player.x && newRock.y === player.y)) {
+            allItems.rocks.push(newRock);
+        }
+    }
+}
+
+Rock.prototype.update = function(dt) {
+    this.lifespan -= 50 * dt;
+    if (this.lifespan < 0) {
+        allItems.rocks.splice(allItems.rocks.indexOf(this), 1);
+    }
+}
+
+//All star function same for both modes
 var Star = function() {
-    //TO DO:
-    //randomly assign if (and when? - every tick X % chance star is created)
     this.sprite = 'images/Star.png';
     this.x = randomArray(gameInfo.columns);
     this.y = randomArray(gameInfo.rows);
     this.lifespan = 500;
-    //prototype render
-    //if collision with player, player invincible for certain time period (possibly implement this in player update)
-
 }
 
 Star.prototype.render = function () {
@@ -182,6 +240,7 @@ function generateStars(){
     }
 }
 
+//All heart functions same for both modes
 var Heart = function() {
     this.sprite = 'images/Heart.png';
     this.x = randomArray(gameInfo.columns);
@@ -208,45 +267,7 @@ function generateHearts(){
         }
     }
 }
-var Rock = function() {
-    this.x = randomArray(gameInfo.columns);
-    this.y = randomArray(gameInfo.rows);
-    this.sprite = 'images/Rock.png';
-    this.lifespan = 500;
-}
 
-Rock.prototype.render = function() {
-    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-}
-
-function generateRocks() {
-    for (var i = 0; i < 4; i++) {
-        if (Math.random() <= .2) {
-            var newRock = new Rock;
-            console.log("Maybe a rock...");
-            if (!allItemCollisions(newRock.x, newRock.y)) {
-                allItems.rocks.push(newRock);
-                console.log("Yes, a rock!");
-            }
-        }
-    }
-}
-
-function generateBugRocks() {
-    if (Math.random() < .001) {
-        var newRock = new Rock;
-        if (!allItemCollisions(newRock.x, newRock.y) && !(newRock.x === player.x && newRock.y === player.y)) {
-            allItems.rocks.push(newRock);
-        }
-    }
-}
-
-Rock.prototype.update = function(dt) {
-    this.lifespan -= 50 * dt;
-    if (this.lifespan < 0) {
-        allItems.rocks.splice(allItems.rocks.indexOf(this), 1);
-    }
-}
 
 var enemySprites = {};
 enemySprites.bug = [
@@ -257,13 +278,6 @@ enemySprites.bug = [
     'images/char-princess-girl.png'
 ]
 enemySprites.human = 'images/enemy-bug.png'
-enemySprites.choose = function() {
-    if (gameInfo.mode === 'human') {
-        return enemySprites.human;
-    } else {
-        return randomArray(enemySprites.bug);
-    }
-}
 
 //TO DO: fine tune startMin/Max, speed params
 function makeEnemies() {
@@ -279,16 +293,16 @@ function makeEnemies() {
 
     var Enemy = function() {
         this.sprite = this.chooseSprite();
-        this.speed = this.randomSpeed(10,5);    //TO DO: var baseSpeed & modifySpeed ? -->make function that can be used
+        this.speed = this.randomSpeed(20,3);    //TO DO: var baseSpeed & modifySpeed ? -->make function that can be used
                                                                                     //to randomly set speed during 
                                                                                     //initialization, enemy.update, &
                                                                                     //levelUp
         if (gameInfo.mode === "human") {
                 this.x = this.startPos(startMin, startMax);
-                this.y = this.randomLane(gameInfo.rows);
+                this.y = randomArray(gameInfo.rows);
 
         } else {
-            this.x = this.randomLane(gameInfo.columns);
+            this.x = randomArray(gameInfo.columns);
             this.y = this.startPos(startMin, startMax);
         }
     }
@@ -300,22 +314,15 @@ function makeEnemies() {
             return randomArray(enemySprites.bug);
         }
     }
-    //same
+
     Enemy.prototype.randomSpeed = function (base, modifier) {
         console.log("Random Speed call");
         var modifier = Math.floor(Math.random() * modifier + 1);
         return base * modifier;   
     }
 
-    //same
     Enemy.prototype.startPos = function(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);   
-    }
-
-    //TO DO: do I need this? randomArray
-    Enemy.prototype.randomLane = function (lanes) {
-            var decision = Math.floor(Math.random() * lanes.length);
-            return lanes[decision];            
     }
 
     //update method
@@ -329,15 +336,15 @@ function makeEnemies() {
             // if enemy has traversed entire area, reset values (randomly)
             if (this.x > 505) {
                 this.x = -100   //TO DO: make this random?
-                this.y = this.randomLane(gameInfo.rows);
-                //this.speed = this.randomSpeed(10,10);
+                this.y = randomArray(gameInfo.rows);
+                this.speed += 10;
             } else {
                 this.x += this.speed * dt;
             }
         }
         Enemy.prototype.levelUp = function() {
             this.x = this.startPos(startMin, startMax);
-            this.y = this.randomLane(gameInfo.rows);
+            this.y = randomArray(gameInfo.rows);
             //TO DO: change speed update to react to difficulty and level
             // *** TO DO: this is a bug, enemy speed doesn't update correctly, fix this ***
             this.speed += 10 + gameInfo.level;
@@ -364,7 +371,7 @@ function makeEnemies() {
             }
     }
 
-    // Draw the enemy on the screen, required method for game
+    // TO DO: refactor for star image only in bug mode
     Enemy.prototype.render = function() {
         if (player.star) { //TO DO: only in bug mode
             ctx.drawImage(Resources.get(player.starSprite), this.x, this.y);    
@@ -387,38 +394,29 @@ function makeEnemies() {
     }
 }
 
-function playerSprite() {
-    if (gameInfo.mode === 'human') {
-        //TO DO: add charaction sprite selection(use object to point to sprites)
-        return 'images/char-boy.png';
-    } else {
-        return 'images/enemy-bug.png';
-    }
+var playerHelp = {};
+playerHelp.sprite = {
+    human: 'images/char-boy.png',
+    bug: 'images/enemy-bug.png'
+};
+
+playerHelp.startY = {
+    human: 300,
+    bug: 140
+};
+
+playerHelp.maxHealth = {
+    easy: 4,
+    medium: 3,
+    hard: 2
 }
 
-function findStartY() {
-    if (gameInfo.mode === 'human') {
-        return 300;
-    } else {
-        return 140;
-    }
-}
-
-function findMaxHealth() {
-    if (gameInfo.difficulty.current === "easy") {
-        return 4;
-    } else if (gameInfo.difficulty.current === "medium") {
-        return 3;
-    } else {
-        return 2;
-    }
-}
 function makePlayer() {
-    var startY = findStartY();
-    var maxHealth = findMaxHealth();
+    var startY = playerHelp.startY[gameInfo.mode];
+    var maxHealth = playerHelp.maxHealth[gameInfo.difficulty.current];
 
     var Player = function() {
-        this.sprite = playerSprite();
+        this.sprite = playerHelp.sprite[gameInfo.mode];
         this.x = 200;
         this.y = startY;
         this.score = 0;
@@ -494,9 +492,7 @@ function makePlayer() {
 
             this.checkGems();
             this.checkStars();
-            if (this.health < maxHealth) {
-                this.checkHearts();
-            }
+            this.checkHearts();
             this.checkDeath();
 
         }
@@ -508,8 +504,6 @@ function makePlayer() {
             this.score += scoreUp;
         }
     } else {
-        //TO DO: put something here or edit game engine
-        //put score check to set up dyanmic level items here? --> yes b/c no objects = nowhere else to perform update(except engine)?
         //TO DO: add direction attribute and change img according to direction
         Player.prototype.update = function(dt) {
             if (this.star) {
@@ -517,7 +511,7 @@ function makePlayer() {
             }
             this.checkGems();
             this.checkStars();
-            //TO DO: change so hearts may occur when enemy is killed
+            //TO DO: change so hearts(and other items (including Rocks?) ?) may occur when enemy is killed?
             this.checkHearts();
             this.checkDeath();
         }
@@ -555,6 +549,7 @@ function makePlayer() {
         lowerBounds = 220;
     }
 
+    //TO DO: is this function necessary? or just refactor handleInput() ?
     Player.prototype.move = function(input) {
         if (input === 'up' && !itemCollision(this.x, this.y - 80, 'rocks')) {
             this.y -= 80;
