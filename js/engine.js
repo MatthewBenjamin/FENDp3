@@ -51,7 +51,7 @@ var Engine = (function(global) {
         } else if (!instructions.shown) {
             instructions.render();
         } else if (gameInfo.paused) {
-            console.log("It's paused!");
+            //console.log("It's paused!");
         } else if (gameInfo.levelUp) {  //move this to update?
             nextLevel();
         } else {
@@ -93,18 +93,15 @@ var Engine = (function(global) {
     function update(dt) {
         //TO DO: is this the right spot for generateStars?
         // refactor into (2 versions of) one generate function, put in update entities
-        generateStars();
-        generateHearts();
-        if (gameInfo.mode === 'bug') {
-            generateBugGems();
-            allItems.gems.forEach(function(gem) {
-                gem.update(dt);
-            })
-            generateBugRocks();
-            allItems.rocks.forEach(function(rock) {
-                rock.update(dt);
-            })
-        }
+        //generateStars();
+        //generateHearts();
+        //generateGems();
+        //if (gameInfo.mode === 'bug') {
+        //    generateBugRocks();
+        //    allItems.rocks.forEach(function(rock) {
+        //        rock.update(dt);
+        //    })
+        //}
         updateEntities(dt);
     }
 
@@ -116,15 +113,21 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities(dt) {
+        updateItems[gameInfo.mode](dt);
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
+        /*
+        allItems.gems.forEach(function(gem) {
+            gem.update(dt);
+        })
         allItems.stars.forEach(function(star) {
             star.update(dt);
         })
         allItems.hearts.forEach(function(heart) {
             heart.update(dt);
         })
+*/
         player.update(dt);
     }
 
@@ -216,7 +219,6 @@ var Engine = (function(global) {
         allItems.hearts = [];
         allItems.gems = [];
         allItems.rocks = [];
-        generateGems();
         generateRocks();            
     }
     /* This function does nothing but it could have been a good place to

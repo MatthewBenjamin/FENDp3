@@ -25,14 +25,16 @@ Optional Stuff:
         player assigns character sprite and trait points
 */
 
-var modeSelect= {};
+var modeSelect= {
+    0 : 'human',
+    1 : 'bug'
+};
 
 var inputPos = 0;
 
 var gameInfo = {}
 gameInfo.level = 1;
 gameInfo.levelUp = false;
-//gameInfo.score = 0;
 gameInfo.mode;
 gameInfo.difficulty = {}
 gameInfo.difficulty.current;
@@ -47,14 +49,7 @@ gameInfo.paused = false;
 
 var instructions = {}
 
-//Helper function randomly assign one value from all possible value of an array
-var randomArray = function(inputArray) {
-    var decision = Math.floor(Math.random() * inputArray.length);
-    return inputArray[decision];
-}
-
-
-//These store the game objects
+//These store the game's objects
 var allEnemies = [];
 var allItems = {}
 allItems.gems = [];
@@ -63,22 +58,42 @@ allItems.stars = [];
 allItems.hearts = [];
 var player;
 
-//Helper functions to check if x&y are occupied when generating items
+/*** Helper Functions ***/
+
+//randomly assign one value from all possible value of an array
+var randomArray = function(inputArray) {
+    var decision = Math.floor(Math.random() * inputArray.length);
+    return inputArray[decision];
+}
+//check if x&y position is already occupied
+//TO DO: do I even still use this? --> this is only used to check if potential player move may collide with rock, refactor?
+/*
 function itemCollision (targetX, targetY, itemType) {
         for (var g = 0; g < allItems[itemType].length; g ++) {
             if (targetX === allItems[itemType][g].x && targetY === allItems[itemType][g].y) {
                 return true;
             }
         }
-}
+} */
 function allItemCollisions (targetX, targetY) {
+    for (var item in allItems) {
+        if (allItems.hasOwnProperty(item)) {
+            for (var i = 0; i < allItems[item].length; i ++) {
+                if (targetX === allItems[item][i].x && targetY === allItems[item][i].y) {
+                    return true;
+                }
+            }            
+        }
+    }
+
+    /* OLD code for this function
     var gemCol = itemCollision(targetX, targetY, 'gems');
     var rockCol = itemCollision(targetX, targetY, 'rocks');
     var starCol = itemCollision(targetX, targetY, 'stars');
     var heartCol = itemCollision(targetX, targetY, 'hearts');
     if (gemCol || rockCol || starCol || heartCol) {
         return true;
-    }
+    } */
 }
 
 // *** TO DO: how to generate Gems and Rocks in different modes? Make 2 different functions to run in the game loop.
@@ -93,7 +108,86 @@ generateLoopItems = {
     bug :
         genRocks(); *** OR - all items, including rocks upon enemy death? in this case need                         different updateEntities() functions
         *** other items generated upon enemy death
+
+        updateEntities = {}
+        updateEntities.human
+        updateEntities.bug
+        updateEntities[gameInfo.mode];
+
+        *****************************
+        Human mode: hearts, gems, & stars are possibly generated each game loop, rocks at next level
+        Bug Mode: hearts, gems, & stars are possibly generated when bug kills enemy
+                  rocks are possibly generated when STAR kills enemies
+                  also, bonus points when using star
 */
+updateItems = {};
+updateItems.human = function(dt) {
+    generateHumanGems();
+    generateHumanHearts();
+    generateHumanStars();
+
+    allItems.gems.forEach(function(gem) {
+        gem.update(dt);
+    });
+    allItems.stars.forEach(function(star) {
+        star.update(dt);
+    });
+    allItems.hearts.forEach(function(heart) {
+        heart.update(dt);
+    });
+}
+updateItems.bug = function(dt) {
+    //NO generation
+    //update already existing items, INCLUDING rocks
+    //generateBugRocks();
+    //generateBugGems();
+    allItems.rocks.forEach(function(rock) {
+        rock.update(dt);
+    });
+    allItems.gems.forEach(function(gem) {
+        gem.update(dt);
+    });
+    allItems.stars.forEach(function(star) {
+        star.update(dt);
+    });
+    allItems.hearts.forEach(function(heart) {
+        heart.update(dt);
+    });
+}
+var newItem;
+function generateBugItems (randomNumD) {
+    console.log("making a..");
+    var randomNumD = Math.random();
+    var itemType;
+    if (randomNumD < .5) {
+        console.log("NOTHING", randomNumD);
+        newItem = null;
+    } else if (randomNumD >= .5 && randomNumD < .75) {
+        console.log("GEM", randomNumD);
+        generateBugGems();
+        itemType = 'gems';
+    } else if (randomNumD >= .75 && randomNumD < .9) {
+        console.log("HEART", randomNumD);
+        newItem = new Heart;
+        itemType = 'hearts';
+    } else if (randomNumD >= .9) {
+        console.log("STAR", randomNumD);
+        newItem = new Star;
+        itemType = 'stars';
+    }
+    
+    if (newItem) {
+        newItem.x = player.x;
+        if (player.y === 140) {
+            newItem.y = player.y + 80;
+        } else {
+            newItem.y = 140;
+        }
+        if (!allItemCollisions(newItem.x, newItem.y)) {
+            allItems[itemType].push(newItem);
+        }
+    }
+}
 var gemHelp = {};
 gemHelp.sprites = {
     0 : 'images/Gem Orange.png',
@@ -112,8 +206,6 @@ var Gem = function(type) {
     this.points = gemHelp.points[type];
     this.x = randomArray(gameInfo.columns);
     this.y = randomArray(gameInfo.rows);
-    
-    //only for B mode
     this.lifespan = 500;
 }
 
@@ -121,8 +213,6 @@ var Gem = function(type) {
 Gem.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
-
-//B mode
 Gem.prototype.update = function(dt) {
     this.lifespan -= 50 * dt;
     if (this.lifespan < 0) {
@@ -131,37 +221,13 @@ Gem.prototype.update = function(dt) {
 }
 
 //H mode
-function generateGems() {
-    var randomGem;
-    var newGem;
-    for (var i=0; i < 5; i++) {
-        randomGem = Math.random();
-        if (randomGem >= .4 && randomGem < .65) {
-            newGem = new Gem(0);
-            if (!allItemCollisions(newGem.x, newGem.y)) {
-                allItems.gems.push(newGem);
-            }
-        } else if (randomGem >= .65 && randomGem < .85) {
-             newGem = new Gem(1);
-            if (!allItemCollisions(newGem.x, newGem.y)) {
-                allItems.gems.push(newGem);
-            }
-        } else if (randomGem >= .85) {
-             newGem = new Gem(2);
-            if (!allItemCollisions(newGem.x, newGem.y)) {
-                allItems.gems.push(newGem);
-            }
-        }
-    }
-}
-
-//B mode
-function generateBugGems() {
+function generateHumanGems() {
         var randomGem;
         var newGem;
         randomGem = Math.random()
         if (randomGem >= .995 && randomGem < .998) {
             newGem = new Gem(0);
+            //TO DO: this repeats itself, but can't put below, make helper function?
             if (!allItemCollisions(newGem.x, newGem.y)) {
                 allItems.gems.push(newGem);
             }
@@ -176,6 +242,22 @@ function generateBugGems() {
                 allItems.gems.push(newGem);
             }
         }
+}
+
+//B mode
+//TO DO: change to make gems (potentially) upon h-enemy death
+function generateBugGems() {
+        var randomGem;
+        //var newGem;
+        randomGem = Math.random()
+        if (randomGem < .5) {
+            newItem = new Gem(0);
+        } else if (randomGem >= .5 && randomGem < .8) {
+            newItem = new Gem(1);
+        } else if (randomGem >= .8) {
+            newItem = new Gem(2);
+        }
+        console.log(newItem);
 }
 
 
@@ -242,7 +324,7 @@ Star.prototype.update = function(dt) {
     }
 }
 
-function generateStars(){
+function generateHumanStars(){
     if (Math.random() < .001) {
         var newStar = new Star;
         if (!allItemCollisions(newStar.x, newStar.y)) {
@@ -270,7 +352,7 @@ Heart.prototype.update = function(dt) {
     }
 }
 
-function generateHearts(){
+function generateHumanHearts(){
     if (Math.random() < .001) {
         var newHeart = new Heart;
         if (!allItemCollisions(newHeart.x, newHeart.y)) {
@@ -357,7 +439,7 @@ function makeEnemies() {
             this.x = this.startPos(startMin, startMax);
             this.y = randomArray(gameInfo.rows);
             //TO DO: change speed update to react to difficulty and level
-            // *** TO DO: this is a bug, enemy speed doesn't update correctly, fix this ***
+            //this.speed += this.randomSpeed(this.speed += gameInfo.level, basemultiplier + gameInfo.level) ?
             this.speed += 10 + gameInfo.level;
         }
     } else {
@@ -365,11 +447,18 @@ function makeEnemies() {
         Enemy.prototype.update = function (dt) {
                 //TO DO: proper speed modification
                 // if enemy has traversed entire area, LOSE
-                if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40 || player.star) {
+                if (player.star) {
+                    this.y = this.startPos(500,1000);
+                    player.score += this.speed * 1.5;
+                    this.sprite = this.chooseSprite();
+                    this.speed += 10;                    
+                }
+                if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40) {
                     this.y = this.startPos(500,1000);
                     player.score += this.speed;
                     this.sprite = this.chooseSprite();
                     this.speed += 10;
+                    generateBugItems();
                 }
                 else if (this.y <= -200) {
                     this.y = this.startPos(500,1000);
@@ -436,8 +525,12 @@ function makePlayer() {
         this.heartSprite = 'images/Small Heart.png';
         this.noHeartSprite = 'images/Not-a-Heart.png';
         this.star = false;
-        this.starLife; //only human mode
-        this.starSprite = 'images/Selector.png'; //only human mode
+        this.starSprite = 'images/Selector.png';
+
+        if (gameInfo.mode === 'human') {
+            this.starLife;
+        }
+
     }
 
     //update functions
@@ -468,6 +561,13 @@ function makePlayer() {
                 }
             }
         }  
+    }
+    Player.prototype.checkRocks = function (targetX, targetY) {
+        for (var g = 0; g < allItems.rocks.length; g ++) {
+            if (targetX === allItems.rocks[g].x && targetY === allItems.rocks[g].y) {
+                return true;
+            }
+        }        
     }
     Player.prototype.checkDeath = function() {
         if (this.health <= 0) {
@@ -519,6 +619,8 @@ function makePlayer() {
         //TO DO: add direction attribute and change img according to direction
         Player.prototype.update = function(dt) {
             if (this.star) {
+                generateBugItems();
+                generateRocks();
                 this.star = false;
             }
             this.checkGems();
@@ -562,17 +664,18 @@ function makePlayer() {
     }
 
     //TO DO: is this function necessary? or just refactor handleInput() ?
+    /*
     Player.prototype.move = function(input) {
-        if (input === 'up' && !itemCollision(this.x, this.y - 80, 'rocks')) {
+        if (input === 'up' && !this.checkRocks(this.x, this.y - 80)) {
             this.y -= 80;
-        } else if (input === 'down' && !itemCollision(this.x, this.y + 80, 'rocks')) {
+        } else if (input === 'down' && !this.checkRocks(this.x, this.y + 80)) {
             this.y += 80;
-        } else if (input === 'left' && !itemCollision(this.x - 100, this.y, 'rocks')) {
+        } else if (input === 'left' && !this.checkRocks(this.x - 100, this.y)) {
             this.x -= 100;
-        } else if (input === 'right' && !itemCollision(this.x + 100, this.y, 'rocks')) {
+        } else if (input === 'right' && !this.checkRocks(this.x + 100, this.y)) {
             this.x += 100;
         }    
-    }
+    } */
     Player.prototype.handleInput = function (input) {
         //x 100
         //y 80
@@ -585,14 +688,14 @@ function makePlayer() {
         }
         //TO DO: refactor into move function?
         if (!gameInfo.paused) {
-            if (input === 'up' && this.y !== upperBounds) {
-                this.move(input);
-            } else if (input === 'down' && this.y !== lowerBounds) {
-                this.move(input);
-            } else if (input === 'left' && this.x !== 0) {
-                this.move(input);
-            } else if (input === 'right' && this.x !== 400) {
-                this.move(input);
+            if (input === 'up' && this.y !== upperBounds && !this.checkRocks(this.x, this.y - 80)) {
+                this.y -= 80;
+            } else if (input === 'down' && this.y !== lowerBounds && !this.checkRocks(this.x, this.y + 80)) {
+                this.y += 80;
+            } else if (input === 'left' && this.x !== 0  && !this.checkRocks(this.x - 100, this.y)) {
+                this.x -= 100;
+            } else if (input === 'right' && this.x !== 400 && !this.checkRocks(this.x + 100, this.y)) {
+                this.x += 100;
             }
         }
     }
@@ -604,7 +707,6 @@ function makeGameObjects() {
     makeEnemies();
     makePlayer();
     if (gameInfo.mode === 'human') {
-        generateGems();
         generateRocks();
     }
 }
@@ -640,16 +742,8 @@ function modeInput(input) {
     } else if (input === 'up' && inputPos === 1) {
             inputPos = 0;
     } else if (input === 'enter') {
-        //use json here for possible game modes instead of more if statements?
-        //ie gameInfo.mode = modeSelect.possibleModes[inputPos];
-        if (inputPos === 0) {
-            gameInfo.mode = 'human';
-        } else if (inputPos === 1) {
-            gameInfo.mode = 'bug';
-            inputPos = 0;
-        } else {
-            console.log("ERROR modeSelect.handleInput");
-        }
+        gameInfo.mode = modeSelect[inputPos];
+        inputPos = 0;
     }
 };
 
@@ -659,9 +753,8 @@ function instructInput(input){
     } else if (input === 'left' && (inputPos === 1 || inputPos === 2)) {
         inputPos -= 1;
     } else if (input === 'enter') {
-        gameInfo.difficulty.current = gameInfo.difficulty.modes[inputPos]
+        gameInfo.difficulty.current = gameInfo.difficulty.modes[inputPos];
         makeGameObjects();
-        //paused = false;
         instructions.shown = true;
     }
 }
