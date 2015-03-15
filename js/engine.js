@@ -45,15 +45,14 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        // refactor so conditional isn't asked every game loop if possible (put game setup in reset)
-        if (!gameInfo.mode) {
-            requestAnimationFrame(modeSelect.render);
-        } else if (!instructions.shown) {
-            instructions.render();
-        } else if (gameInfo.paused) {
-            //console.log("It's paused!");
-        } else if (gameInfo.levelUp) {  //move this to update?
-            nextLevel();
+        
+        // Render game mode selection first, then instructions/difficulty selection, then render the game
+        if (!currentMode) {
+            requestAnimationFrame(modeSelectRender);
+        } else if (!instructShown) {
+            instructRender();
+        } else if (paused) {
+            //This freezes the game and waits to be unpaused
         } else {
             update(dt);
             render();            
@@ -91,17 +90,9 @@ var Engine = (function(global) {
      * on the entities themselves within your app.js file).
      */
     function update(dt) {
-        //TO DO: is this the right spot for generateStars?
-        // refactor into (2 versions of) one generate function, put in update entities
-        //generateStars();
-        //generateHearts();
-        //generateGems();
-        //if (gameInfo.mode === 'bug') {
-        //    generateBugRocks();
-        //    allItems.rocks.forEach(function(rock) {
-        //        rock.update(dt);
-        //    })
-        //}
+        if (levelUp) {
+            nextLevel();
+        }
         updateEntities(dt);
     }
 
@@ -113,21 +104,13 @@ var Engine = (function(global) {
      * render methods.
      */
     function updateEntities(dt) {
-        updateItems[gameInfo.mode](dt);
+        //update hearts, gems, stars, and rocks based on currentMode
+        updateItems[currentMode](dt);
+        
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
-        /*
-        allItems.gems.forEach(function(gem) {
-            gem.update(dt);
-        })
-        allItems.stars.forEach(function(star) {
-            star.update(dt);
-        })
-        allItems.hearts.forEach(function(heart) {
-            heart.update(dt);
-        })
-*/
+
         player.update(dt);
     }
 
@@ -175,8 +158,31 @@ var Engine = (function(global) {
         }
         
         renderEntities();
-    }
 
+        //show game over screen
+        if (player.health <= 0) {
+            renderDeath();
+        };
+    }
+    function renderDeath() {
+        //change player x/y so it doesn't collide with enemies in bug mode
+        player.x = -1000;
+        player.y = -1000;
+        ctx.fillStyle = "black";
+        ctx.fillRect(100,132,303,249);
+        ctx,textAlign = "center";
+        ctx.fillStyle = "white";
+        ctx.font = "34pt Impact";
+        ctx.fillText("GAME OVER", canvas.width / 2 - 100, 175);
+        ctx.font = "20pt Impact";
+        ctx.fillText("FINAL SCORE: " + player.score, canvas.width / 2 - 90, 175 + 83);
+        ctx.fillText("Press ENTER to play again", canvas.width / 2 - 140, 175 + 83 + 83);
+
+        //restart game
+        if (resetGame) {
+            init();
+        }
+    }
     /* This function is called by the render function and is called on each game
      * tick. It's purpose is to then call the render functions you have defined
      * on your enemy and player entities within app.js
@@ -208,9 +214,10 @@ var Engine = (function(global) {
         player.render();
     }
 
+    //level up in human mode
     function nextLevel() {
-        gameInfo.levelUp = false;
-        gameInfo.level ++;
+        levelUp = false;
+        level ++;
         allEnemies.forEach(function(enemy) {
             enemy.levelUp();
         });
@@ -219,63 +226,64 @@ var Engine = (function(global) {
         allItems.hearts = [];
         allItems.gems = [];
         allItems.rocks = [];
-        generateRocks();            
+        generateHumanRocks();            
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
      * - those sorts of things. It's only called once by the init() method.
      */
 
-    //TO DO: refactor this function?
-    modeSelect.render = function () {
+    modeSelectRender = function () {
         //clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
-        if (gameInfo.mode) {
-        } else {
-            ctx.font = "34pt Impact";
-            ctx.textAlign = "center";
-            ctx.fillText("SELECT GAME MODE", canvas.width / 2, 40);
-            ctx.fillStyle = "black";
-            ctx.strokeStyle = "black";
+        ctx.font = "34pt Impact";
+        ctx.textAlign = "center";
+        ctx.fillText("SELECT GAME MODE", canvas.width / 2, 40);
+        ctx.fillStyle = "black";
+        ctx.strokeStyle = "black";
 
-            if (inputPos === 0) {
-                //highlight human mode
-                ctx.fillRect(canvas.width / 2 - 225,100,200,100);
+        if (inputPos === 0) {
+            //highlight human mode
+            ctx.fillRect(canvas.width / 2 - 225,100,200,100);
 
-                //display passive bug mode
-                ctx.strokeRect(canvas.width / 2 - 225,250,200,100);
+            //display passive bug mode
+            ctx.strokeRect(canvas.width / 2 - 225,250,200,100);
 
-                //display human mode desc
-                ctx.font = "18pt Impact";
-                ctx.strokeText("Human", canvas.width / 2 + 125, 125);
-            } else if (inputPos === 1) {
-                //passive human mode
-                ctx.strokeRect(canvas.width / 2 - 225,100,200,100);
+            //display human mode desc
+            ctx.font = "18pt Impact";
+            ctx.strokeText("Human", canvas.width / 2 + 125, 125);
+            ctx.font = "14pt Impact";
+            ctx.fillText("Cross the road while", canvas.width / 2 + 125, 150);
+            ctx.fillText("avoiding the ladybugs", canvas.width / 2 + 125, 170);
+        } else if (inputPos === 1) {
+            //passive human mode
+            ctx.strokeRect(canvas.width / 2 - 225,100,200,100);
 
-                //highlight bug mode
-                ctx.fillRect(canvas.width / 2 - 225,250,200,100);
-                
-                //display bug mode desc
-                ctx.font = "18pt Impact";
-                ctx.strokeText("Bug", canvas.width / 2 + 125, 125);
-            } else {
-                console.log("ERROR");
-            }
-
-            ctx.strokeRect(canvas.width / 2 + 25,100,200,250);
-
-            //select screen instructions
-            ctx.strokeRect(canvas.width / 2 - 225, 375, 450, 100);
-            ctx.fillText("Directions", canvas.width / 2, 400);
-            ctx.fillText("Use UP and DOWN arrows to toggle selection", canvas.width / 2, 430);
-            ctx.fillText("Press ENTER to select game mode", canvas.width / 2, 460);
-
+            //highlight bug mode
+            ctx.fillRect(canvas.width / 2 - 225,250,200,100);
+            
+            //display bug mode desc
+            ctx.font = "18pt Impact";
+            ctx.strokeText("Bug", canvas.width / 2 + 125, 125);
+            ctx.font = "14pt Impact";
+            ctx.fillText("Prevent the humans from", canvas.width / 2 + 125, 150);
+            ctx.fillText("crossing the road", canvas.width / 2 + 125, 170);
         }
+
+        ctx.font = "18pt Impact";
+        ctx.strokeRect(canvas.width / 2 + 25,100,200,250);
+
+        //select screen instructions
+        ctx.strokeRect(canvas.width / 2 - 225, 375, 450, 100);
+        ctx.fillText("Directions", canvas.width / 2, 400);
+        ctx.fillText("Use UP and DOWN arrows to toggle selection", canvas.width / 2, 430);
+        ctx.fillText("Press ENTER to select game mode", canvas.width / 2, 460);
+
     };
 
-    instructions.shown = false;
-    instructions.render = function () {
+    instructShown = false;
+    instructRender = function () {
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
         if (inputPos === 0) {
@@ -295,13 +303,39 @@ var Engine = (function(global) {
             ctx.fillText("HARD", canvas.width / 2, 350);
         }
 
-        ctx.fillText("Show Instructions based on game mode here", canvas.width / 2 , 100);
+        ctx.font = "34pt Impact";
+        ctx.textAlign = "center";
+        ctx.fillText("INSTRUCTIONS:", canvas.width / 2, 40);
+        ctx.font = "18pt Impact";
+
+        if (currentMode === 'human') {
+            ctx.fillText("Cross the road while avoiding ladybugs.", canvas.width / 2 , 80);
+            ctx.fillText("Stars will briefly make you invincible.", canvas.width / 2 , 105);
+
+        } else {
+            ctx.fillText("Prevent the humans from crossing the road.", canvas.width / 2 , 80);
+            ctx.fillText("Stars kill all humans and create rocks.", canvas.width / 2 , 105);            
+        }
+        ctx.fillText("Collect gems for extra points.", canvas.width / 2 , 155);
+        ctx.fillText("Collect hearts to increase your health.", canvas.width / 2 , 130);
+        ctx.fillText("Rocks will block your path.", canvas.width / 2 , 180);
         ctx.fillText("Press ENTER to select difficulty and start the game", canvas.width / 2, 400);
     }
 
-    // TO DO: refactor functions (i.e. moveSelect) into reset?
     function reset() {
         console.log("reset");
+        level = 1;
+        levelUp = false;
+        currentMode = null;
+        currentDiff = null;
+        instructShown = false;
+        inputPos = 0;
+        allEnemies = [];
+        allItems.gems = [];
+        allItems.rocks = [];
+        allItems.stars = [];
+        allItems.hearts = [];
+        resetGame = false;
    }
 
     /* Go ahead and load all of the images we know we're going to need to
