@@ -1,6 +1,7 @@
-frontend-nanodegree-arcade-game
-===============================
+How to Play the Game
 
-Students should use this rubric: https://www.udacity.com/course/viewer#!/c-ud015/l-3072058665/m-3072588797
+	This game has two different modes, "Human" mode and "Bug" mode. 
 
-for self-checking their submission.
+	In Human mode, you must cross the road while avoiding ladybugs. s. Use stars to become invincible for a few seconds. 
+	In Bug mode, you must stop humans from crossing the road. Collide with humans to kill them. Use stars to kill all humans (with a score bonus!). But beware, using stars can create rocks.
+	In both modes, earn extra points by collecting gems. Increase your health by collecting hearts. Rocks block your path.
