@@ -68,7 +68,7 @@ var Engine = (function(global) {
          * function again as soon as the browser is able to draw another frame.
          */
         win.requestAnimationFrame(main);
-    };
+    }
 
     /* This function does some initial setup that should only occur once,
      * particularly setting the lastTime variable that is required for the
@@ -162,7 +162,7 @@ var Engine = (function(global) {
         //show game over screen
         if (player.health <= 0) {
             renderDeath();
-        };
+        }
     }
     function renderDeath() {
         //change player x/y so it doesn't collide with enemies in bug mode
@@ -170,13 +170,13 @@ var Engine = (function(global) {
         player.y = -1000;
         ctx.fillStyle = "black";
         ctx.fillRect(100,132,303,249);
-        ctx,textAlign = "center";
+        ctx.textAlign = "center";
         ctx.fillStyle = "white";
         ctx.font = "34pt Impact";
-        ctx.fillText("GAME OVER", canvas.width / 2 - 100, 175);
+        ctx.fillText("GAME OVER", canvas.width / 2, 175);
         ctx.font = "20pt Impact";
-        ctx.fillText("FINAL SCORE: " + player.score, canvas.width / 2 - 90, 175 + 83);
-        ctx.fillText("Press ENTER to play again", canvas.width / 2 - 140, 175 + 83 + 83);
+        ctx.fillText("FINAL SCORE: " + player.score, canvas.width / 2, 175 + 83);
+        ctx.fillText("Press ENTER to play again", canvas.width / 2, 175 + 83 + 83);
 
         //restart game
         if (resetGame) {
@@ -233,7 +233,7 @@ var Engine = (function(global) {
      * - those sorts of things. It's only called once by the init() method.
      */
 
-    modeSelectRender = function () {
+    modeSelectRender = function() {
         //clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
@@ -283,14 +283,14 @@ var Engine = (function(global) {
     };
 
     instructShown = false;
-    instructRender = function () {
+    instructRender = function() {
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
         if (inputPos === 0) {
             ctx.fillRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
-            ctx.fillText("EASY", canvas.width / 2, 350)
+            ctx.fillText("EASY", canvas.width / 2, 350);
         } else if (inputPos === 1) {
             ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.fillRect(canvas.width / 2 -75, 200 , 150, 100);
@@ -320,10 +320,9 @@ var Engine = (function(global) {
         ctx.fillText("Collect hearts to increase your health.", canvas.width / 2 , 130);
         ctx.fillText("Rocks will block your path.", canvas.width / 2 , 180);
         ctx.fillText("Press ENTER to select difficulty and start the game", canvas.width / 2, 400);
-    }
+    };
 
     function reset() {
-        console.log("reset");
         level = 1;
         levelUp = false;
         currentMode = null;
@@ -352,11 +351,11 @@ var Engine = (function(global) {
         'images/char-horn-girl.png',
         'images/char-pink-girl.png',
         'images/char-princess-girl.png',
-        'images/Gem Orange.png',
-        'images/Gem Green.png',
-        'images/Gem Blue.png',
+        'images/Gem-Orange.png',
+        'images/Gem-Green.png',
+        'images/Gem-Blue.png',
         'images/Heart.png',
-        'images/Small Heart.png',
+        'images/Small-Heart.png',
         'images/Not-a-Heart.png',
         'images/Rock.png',
         'images/Star.png',

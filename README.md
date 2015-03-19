@@ -1,4 +1,8 @@
-How to Play the Game
+How to Run the Game:
+
+    Open index.html in a modern web browser.
+
+How to Play the Game:
 
 	This game has two different modes, "Human" mode and "Bug" mode. 
 
