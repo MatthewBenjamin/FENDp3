@@ -19,14 +19,14 @@ var levelUp = false;
 var currentMode;
 var gameModes = {
     0 : 'human',
-    1 : 'bug'    
+    1 : 'bug'
 };
 
 var currentDiff;
 var diffModes =  {
-    0 : "easy",
-    1 : "medium",
-    2 : "hard"
+    0 : 'easy',
+    1 : 'medium',
+    2 : 'hard'
 };
 
 //TODO: un-round pixel #s?
@@ -60,7 +60,7 @@ function allItemCollisions(targetX, targetY) {
                 if (targetX === allItems[item][i].x && targetY === allItems[item][i].y) {
                     return true;
                 }
-            }            
+            }
         }
     }
 }
@@ -84,7 +84,7 @@ NormalRender.prototype.render = function() {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
-//All items, EXCEPT rocks in human mode
+//All items, EXCEPT rocks in HUMAN mode
 var LifespanObject = function(x,y, lifespan) {
     NormalRender.call(this, x, y);
 
@@ -123,75 +123,6 @@ var Gem = function(type) {
 Gem.prototype = Object.create(LifespanObject.prototype);
 Gem.prototype.constructor = Gem;
 
-//Rocks (block player movement)
-var makeRock = function() {
-    var Rock = function() {
-        if (currentMode === "human") {
-            NormalRender.call(this, randomArray(columns), randomArray(rows));
-        } else {
-            LifespanObject.call(this, randomArray(columns), randomArray(rows), 500);
-        }
-
-        this.sprite = 'images/Rock.png';
-    };
-
-    if (currentMode === "human") {
-        Rock.prototype = Object.create(NormalRender.prototype);
-    } else {
-        Rock.prototype = Object.create(LifespanObject.prototype);
-    }
-
-    Rock.prototype.constructor = Rock;
-
-    return new Rock();
-}
-
-//Stars (function varies based on game mode, see player.update & enemy.update methods)
-var Star = function() {
-    LifespanObject.call(this, randomArray(columns), randomArray(rows), 500);
-
-    this.sprite = 'images/Star.png';
-};
-Star.prototype = Object.create(LifespanObject.prototype);
-Star.prototype.constructor = Star;
-
-//Hearts (increase player health upon contact)
-var Heart = function() {
-    LifespanObject.call(this, randomArray(columns), randomArray(rows), 500);
-
-    this.sprite = 'images/Heart.png';
-};
-Heart.prototype = Object.create(LifespanObject.prototype);
-Heart.prototype.constructor = Heart;
-
-//Item Generation/Updates
-
-//updateItems[currentMode] is called in the updateEntities function in the game loop
-//Human Mode: updates and creates gems, hearts, and stars
-var updateItems = {};
-updateItems.human = function(dt) {
-    generateHumanGems();
-    generateHumanHearts();
-    generateHumanStars();
-
-    allItems.gems.forEach(function(gem) {
-        gem.update(dt, "gems");
-    });
-    allItems.stars.forEach(function(star) {
-        star.update(dt, "stars");
-    });
-    allItems.hearts.forEach(function(heart) {
-        heart.update(dt, "hearts");
-    });
-};
-function generateHumanHearts(){
-    if (Math.random() < 0.001) {
-        var newHeart = new Heart();
-        if (!allItemCollisions(newHeart.x, newHeart.y)) {
-            allItems.hearts.push(newHeart);
-        }
-    }
-}
 function generateHumanGems() {
         var randomGem;
         var newGem;
@@ -207,6 +138,16 @@ function generateHumanGems() {
             allItems.gems.push(newGem);
         }
 }
+
+//Stars (function varies based on game mode, see player.update & enemy.update methods)
+var Star = function() {
+    LifespanObject.call(this, randomArray(columns), randomArray(rows), 500);
+
+    this.sprite = 'images/Star.png';
+};
+Star.prototype = Object.create(LifespanObject.prototype);
+Star.prototype.constructor = Star;
+
 function generateHumanStars(){
     if (Math.random() < 0.001) {
         var newStar = new Star();
@@ -216,66 +157,46 @@ function generateHumanStars(){
     }
 }
 
-//Bug mode: Updates all items
-updateItems.bug = function(dt) {
-    allItems.rocks.forEach(function(rock) {
-        rock.update(dt, "rocks");
-    });
-    allItems.gems.forEach(function(gem) {
-        gem.update(dt, "gems");
-    });
-    allItems.stars.forEach(function(star) {
-        star.update(dt, "stars");
-    });
-    allItems.hearts.forEach(function(heart) {
-        heart.update(dt, "hearts");
-    });
+//Hearts (increase player health upon contact)
+var Heart = function() {
+    LifespanObject.call(this, randomArray(columns), randomArray(rows), 500);
+
+    this.sprite = 'images/Heart.png';
 };
+Heart.prototype = Object.create(LifespanObject.prototype);
+Heart.prototype.constructor = Heart;
 
-//Bug Mode: make items upon enemy death
-var newItem;
-//Helper for generateBugItems (below)
-function generateBugGems() {
-        var randomGem;
-        //var newGem;
-        randomGem = Math.random();
-        if (randomGem < 0.5) {
-            newItem = new Gem(0);
-        } else if (randomGem >= 0.5 && randomGem < 0.8) {
-            newItem = new Gem(1);
-        } else if (randomGem >= 0.8) {
-            newItem = new Gem(2);
+function generateHumanHearts(){
+    if (Math.random() < 0.001) {
+        var newHeart = new Heart();
+        if (!allItemCollisions(newHeart.x, newHeart.y)) {
+            allItems.hearts.push(newHeart);
         }
-}
-function generateBugItems() {
-    var randomNum = Math.random();
-    var itemType;
-    if (randomNum < 0.5) {
-    } else if (randomNum >= 0.5 && randomNum < 0.75) {
-        generateBugGems();
-        itemType = 'gems';
-    } else if (randomNum >= 0.75 && randomNum < 0.9) {
-        newItem = new Heart();
-        itemType = 'hearts';
-    } else if (randomNum >= 0.9) {
-        newItem = new Star();
-        itemType = 'stars';
     }
-    
-    if (newItem) {
-        newItem.x = player.x;
-        if (player.y === 140) {
-            newItem.y = player.y + 80;
+}
+
+//Rocks (block player movement)
+var makeRock = function() {
+    var Rock = function() {
+        if (currentMode === 'human') {
+            NormalRender.call(this, randomArray(columns), randomArray(rows));
         } else {
-            newItem.y = 140;
+            LifespanObject.call(this, randomArray(columns), randomArray(rows), 500);
         }
-        if (!allItemCollisions(newItem.x, newItem.y)) {
-            allItems[itemType].push(newItem);
-        }
-    }
-    newItem = null;
-}
 
+        this.sprite = 'images/Rock.png';
+    };
+
+    if (currentMode === 'human') {
+        Rock.prototype = Object.create(NormalRender.prototype);
+    } else {
+        Rock.prototype = Object.create(LifespanObject.prototype);
+    }
+
+    Rock.prototype.constructor = Rock;
+
+    return new Rock();
+};
 //Human mode: make rocks when leveling Up
 function generateHumanRocks() {
     for (var i = 0; i < 4; i++) {
@@ -297,6 +218,88 @@ function generateBugRocks() {
             }
         }
     }
+}
+
+//Item Generation/Updates
+
+//updateItems[currentMode] is called in the updateEntities function in the game loop
+//Human Mode: updates and creates gems, hearts, and stars
+var updateItems = {};
+updateItems.human = function(dt) {
+    generateHumanGems();
+    generateHumanHearts();
+    generateHumanStars();
+
+    allItems.gems.forEach(function(gem) {
+        gem.update(dt, 'gems');
+    });
+    allItems.stars.forEach(function(star) {
+        star.update(dt, 'stars');
+    });
+    allItems.hearts.forEach(function(heart) {
+        heart.update(dt, 'hearts');
+    });
+};
+
+//Bug mode: Updates all items
+updateItems.bug = function(dt) {
+    allItems.rocks.forEach(function(rock) {
+        rock.update(dt, 'rocks');
+    });
+    allItems.gems.forEach(function(gem) {
+        gem.update(dt, 'gems');
+    });
+    allItems.stars.forEach(function(star) {
+        star.update(dt, 'stars');
+    });
+    allItems.hearts.forEach(function(heart) {
+        heart.update(dt, 'hearts');
+    });
+};
+
+//Bug Mode: make items upon enemy death
+var newItem;
+//Helper for generateBugItems (below)
+function generateBugGems() {
+        var randomGem;
+        //var newGem;
+        randomGem = Math.random();
+        if (randomGem < 0.5) {
+            newItem = new Gem(0);
+        } else if (randomGem >= 0.5 && randomGem < 0.8) {
+            newItem = new Gem(1);
+        } else if (randomGem >= 0.8) {
+            newItem = new Gem(2);
+        }
+}
+//called in Enemy.update and Player.update methods
+function generateBugItems() {
+    var randomNum = Math.random();
+    var itemType;
+    if (randomNum < 0.5) {
+    } else if (randomNum >= 0.5 && randomNum < 0.75) {
+        generateBugGems();
+        itemType = 'gems';
+    } else if (randomNum >= 0.75 && randomNum < 0.9) {
+        newItem = new Heart();
+        itemType = 'hearts';
+    } else if (randomNum >= 0.9) {
+        newItem = new Star();
+        itemType = 'stars';
+    }
+
+    if (newItem) {
+        newItem.x = player.x;
+        if (player.y === 140) {
+            newItem.y = player.y + 80;
+        } else {
+            newItem.y = 140;
+        }
+        if (!allItemCollisions(newItem.x, newItem.y)) {
+            allItems[itemType].push(newItem);
+        }
+    }
+    newItem = null;
 }
 
 /*** ENEMY ***/
@@ -325,7 +328,7 @@ function makeEnemies() {
     }
 
     var Enemy = function() {
-        if (currentMode === "human") {
+        if (currentMode === 'human') {
             NormalRender.call(this, this.startPos(startMin, startMax), randomArray(rows));
         } else {
             GameObject.call(this, randomArray(columns), this.startPos(startMin, startMax));
@@ -335,7 +338,7 @@ function makeEnemies() {
         this.speed = this.randomSpeed(20,3);
     };
 
-    if (currentMode === "human" ) {
+    if (currentMode === 'human' ) {
         Enemy.prototype = Object.create(NormalRender.prototype);
     } else {
         Enemy.prototype = Object.create(GameObject.prototype);
@@ -353,15 +356,15 @@ function makeEnemies() {
 
     Enemy.prototype.randomSpeed = function(base, modifier) {
         modifier = Math.floor(Math.random() * modifier + 1);
-        return base * modifier;   
+        return base * modifier;
     };
 
     Enemy.prototype.startPos = function(min, max) {
-        return Math.floor(Math.random() * (max - min + 1) + min);   
+        return Math.floor(Math.random() * (max - min + 1) + min);
     };
 
     //Human only
-    if (currentMode === "human") { 
+    if (currentMode === 'human') {
         Enemy.prototype.update = function(dt) {
             // You should multiply any movement by the dt parameter
             // which will ensure the game runs at the same speed for
@@ -390,7 +393,7 @@ function makeEnemies() {
                 this.y = this.startPos(500,1000);
                 player.score += this.speed * 1.5;
                 this.sprite = this.chooseSprite();
-                this.speed += 10;                    
+                this.speed += 10;
             }
             //Enemy is "killed" upon collision with player
             if (this.x === player.x && this.y > player.y -40 && this.y < player.y + 40) {
@@ -416,7 +419,7 @@ function makeEnemies() {
         Enemy.prototype.render = function() {
             if (player.star) {
                 //this makes all enemies flash when killed by star
-                ctx.drawImage(Resources.get(player.starSprite), this.x, this.y);    
+                ctx.drawImage(Resources.get(player.starSprite), this.x, this.y);
             }
             ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
         };
@@ -454,7 +457,7 @@ playerHelp.maxHealth = {
     hard: 2
 };
 
-//this generate a player based on currentMode
+//generate player based on currentMode
 function makePlayer() {
     var startY = playerHelp.startY[currentMode];
     var maxHealth = playerHelp.maxHealth[currentDiff];
@@ -488,7 +491,7 @@ function makePlayer() {
                 this.score += allItems.gems[g].points;
                 allItems.gems.splice(g,1);
             }
-        }    
+        }
     };
     Player.prototype.checkStars = function() {
         for (var g = 0; g < allItems.stars.length; g++) {
@@ -497,7 +500,7 @@ function makePlayer() {
                 this.star = true;
                 this.starLife = 100;
             }
-        }        
+        }
     };
     Player.prototype.checkHearts = function() {
         for (var g = 0; g < allItems.hearts.length; g++) {
@@ -507,17 +510,17 @@ function makePlayer() {
                     this.health += 1;
                 }
             }
-        }  
+        }
     };
     Player.prototype.checkRocks = function(targetX, targetY) {
         for (var g = 0; g < allItems.rocks.length; g ++) {
             if (targetX === allItems.rocks[g].x && targetY === allItems.rocks[g].y) {
                 return true;
             }
-        }        
+        }
     };
 
-    if (currentMode === "human") {
+    if (currentMode === 'human') {
         Player.prototype.update = function(dt) {
             //collision detection
             //player is invincible for some time after contact with a star
@@ -555,7 +558,7 @@ function makePlayer() {
             this.score += scoreUp;
         };
     } else {
-        //TO DO: add direction attribute and change image according to left/right direction
+        //TODO: add direction attribute and change image according to left/right direction
         Player.prototype.update = function() {
             if (this.star) {
                 generateBugItems();
@@ -572,12 +575,12 @@ function makePlayer() {
         if (this.star) {
             ctx.drawImage(Resources.get(this.starSprite), this.x,this.y);
         }
-        ctx.textAlign = "left";
+        ctx.textAlign = 'left';
         ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-        ctx.fillText("SCORE: " + this.score, 0, 40);
+        ctx.fillText('SCORE: ' + this.score, 0, 40);
         //TODO: refactor LEVEL text
         if (currentMode === 'human') {
-            ctx.fillText("LEVEL: " + level, 202, 40);
+            ctx.fillText('LEVEL: ' + level, 202, 40);
         }
         for (var h = 0; h < maxHealth; h++) {
             if (h < this.health) {
@@ -591,7 +594,7 @@ function makePlayer() {
     //set upper and lower boundaries for player
     var upperBounds;
     var lowerBounds;
-    if (currentMode === "human") {
+    if (currentMode === 'human') {
         upperBounds = -20;
         lowerBounds = 380;
     } else {
@@ -633,35 +636,7 @@ function makeGameObjects() {
         generateHumanRocks();
     }
 }
-
-// This listens for key presses and sends the keys to your
-// Player.handleInput() method. You don't need to modify this.
-document.addEventListener('keyup', function(e) {
-    // *** added 'enter' key ***
-    var allowedKeys = {
-        13: 'enter',
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down'
-    };
-
-    var key = allowedKeys[e.keyCode];
-
-    //input functions for current game state
-    if (!currentMode) {
-        modeInput(key);
-    } else if (!instructShown) {
-        instructInput(key);
-    } else if (player.health <= 0) {
-        gameOverInput(key);
-    } else {
-        player.handleInput(allowedKeys[e.keyCode]);    
-    }
-    
-});
-
-//mode selection input handler
+//input handlers
 function modeInput(input) {
     //up & down keys toggle focus
     if (input === 'down' && inputPos === 0) {
@@ -694,3 +669,30 @@ function gameOverInput(input) {
         resetGame = true;
     }
 }
+
+// This listens for key presses and sends the keys to your
+// Player.handleInput() method. You don't need to modify this.
+document.addEventListener('keyup', function(e) {
+    // *** added 'enter' key ***
+    var allowedKeys = {
+        13: 'enter',
+        37: 'left',
+        38: 'up',
+        39: 'right',
+        40: 'down'
+    };
+
+    var key = allowedKeys[e.keyCode];
+
+    //input functions for current game state
+    if (!currentMode) {
+        modeInput(key);
+    } else if (!instructShown) {
+        instructInput(key);
+    } else if (player.health <= 0) {
+        gameOverInput(key);
+    } else {
+        player.handleInput(allowedKeys[e.keyCode]);
+    }
+
+});

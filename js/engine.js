@@ -45,7 +45,7 @@ var Engine = (function(global) {
         /* Call our update/render functions, pass along the time delta to
          * our update function since it may be used for smooth animation.
          */
-        
+
         // Render game mode selection first, then instructions/difficulty selection, then render the game
         if (!currentMode) {
             requestAnimationFrame(modeSelectRender);
@@ -55,7 +55,7 @@ var Engine = (function(global) {
             //This freezes the game and waits to be unpaused
         } else {
             update(dt);
-            render();            
+            render();
         }
 
 
@@ -106,7 +106,7 @@ var Engine = (function(global) {
     function updateEntities(dt) {
         //update hearts, gems, stars, and rocks based on currentMode
         updateItems[currentMode](dt);
-        
+
         allEnemies.forEach(function(enemy) {
             enemy.update(dt);
         });
@@ -156,7 +156,7 @@ var Engine = (function(global) {
                 ctx.drawImage(Resources.get(rowImages[row]), col * 101, row * 83);
             }
         }
-        
+
         renderEntities();
 
         //show game over screen
@@ -168,15 +168,15 @@ var Engine = (function(global) {
         //change player x/y so it doesn't collide with enemies in bug mode
         player.x = -1000;
         player.y = -1000;
-        ctx.fillStyle = "black";
+        ctx.fillStyle = 'black';
         ctx.fillRect(100,132,303,249);
-        ctx.textAlign = "center";
-        ctx.fillStyle = "white";
-        ctx.font = "34pt Impact";
-        ctx.fillText("GAME OVER", canvas.width / 2, 175);
-        ctx.font = "20pt Impact";
-        ctx.fillText("FINAL SCORE: " + player.score, canvas.width / 2, 175 + 83);
-        ctx.fillText("Press ENTER to play again", canvas.width / 2, 175 + 83 + 83);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.font = '34pt Impact';
+        ctx.fillText('GAME OVER', canvas.width / 2, 175);
+        ctx.font = '20pt Impact';
+        ctx.fillText('FINAL SCORE: ' + player.score, canvas.width / 2, 175 + 83);
+        ctx.fillText('Press ENTER to play again', canvas.width / 2, 175 + 83 + 83);
 
         //restart game
         if (resetGame) {
@@ -226,7 +226,7 @@ var Engine = (function(global) {
         allItems.hearts = [];
         allItems.gems = [];
         allItems.rocks = [];
-        generateHumanRocks();            
+        generateHumanRocks();
     }
     /* This function does nothing but it could have been a good place to
      * handle game reset states - maybe a new game menu or a game over screen
@@ -237,11 +237,11 @@ var Engine = (function(global) {
         //clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
-        ctx.font = "34pt Impact";
-        ctx.textAlign = "center";
-        ctx.fillText("SELECT GAME MODE", canvas.width / 2, 40);
-        ctx.fillStyle = "black";
-        ctx.strokeStyle = "black";
+        ctx.font = '34pt Impact';
+        ctx.textAlign = 'center';
+        ctx.fillText('SELECT GAME MODE', canvas.width / 2, 40);
+        ctx.fillStyle = 'black';
+        ctx.strokeStyle = 'black';
 
         if (inputPos === 0) {
             //highlight human mode
@@ -251,34 +251,34 @@ var Engine = (function(global) {
             ctx.strokeRect(canvas.width / 2 - 225,250,200,100);
 
             //display human mode desc
-            ctx.font = "18pt Impact";
-            ctx.strokeText("Human", canvas.width / 2 + 125, 125);
-            ctx.font = "14pt Impact";
-            ctx.fillText("Cross the road while", canvas.width / 2 + 125, 150);
-            ctx.fillText("avoiding the ladybugs", canvas.width / 2 + 125, 170);
+            ctx.font = '18pt Impact';
+            ctx.strokeText('Human', canvas.width / 2 + 125, 125);
+            ctx.font = '14pt Impact';
+            ctx.fillText('Cross the road while', canvas.width / 2 + 125, 150);
+            ctx.fillText('avoiding the ladybugs', canvas.width / 2 + 125, 170);
         } else if (inputPos === 1) {
             //passive human mode
             ctx.strokeRect(canvas.width / 2 - 225,100,200,100);
 
             //highlight bug mode
             ctx.fillRect(canvas.width / 2 - 225,250,200,100);
-            
+
             //display bug mode desc
-            ctx.font = "18pt Impact";
-            ctx.strokeText("Bug", canvas.width / 2 + 125, 125);
-            ctx.font = "14pt Impact";
-            ctx.fillText("Prevent the humans from", canvas.width / 2 + 125, 150);
-            ctx.fillText("crossing the road", canvas.width / 2 + 125, 170);
+            ctx.font = '18pt Impact';
+            ctx.strokeText('Bug', canvas.width / 2 + 125, 125);
+            ctx.font = '14pt Impact';
+            ctx.fillText('Prevent the humans from', canvas.width / 2 + 125, 150);
+            ctx.fillText('crossing the road', canvas.width / 2 + 125, 170);
         }
 
-        ctx.font = "18pt Impact";
+        ctx.font = '18pt Impact';
         ctx.strokeRect(canvas.width / 2 + 25,100,200,250);
 
         //select screen instructions
         ctx.strokeRect(canvas.width / 2 - 225, 375, 450, 100);
-        ctx.fillText("Directions", canvas.width / 2, 400);
-        ctx.fillText("Use UP and DOWN arrows to toggle selection", canvas.width / 2, 430);
-        ctx.fillText("Press ENTER to select game mode", canvas.width / 2, 460);
+        ctx.fillText('Directions', canvas.width / 2, 400);
+        ctx.fillText('Use UP and DOWN arrows to toggle selection', canvas.width / 2, 430);
+        ctx.fillText('Press ENTER to select game mode', canvas.width / 2, 460);
 
     };
 
@@ -290,36 +290,36 @@ var Engine = (function(global) {
             ctx.fillRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
-            ctx.fillText("EASY", canvas.width / 2, 350);
+            ctx.fillText('EASY', canvas.width / 2, 350);
         } else if (inputPos === 1) {
             ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.fillRect(canvas.width / 2 -75, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 +100, 200 , 150, 100);
-            ctx.fillText("MEDIUM", canvas.width / 2, 350);
+            ctx.fillText('MEDIUM', canvas.width / 2, 350);
         } else if (inputPos === 2) {
             ctx.strokeRect(canvas.width / 2 - 250, 200 , 150, 100);
             ctx.strokeRect(canvas.width / 2 -75, 200 , 150, 100);
             ctx.fillRect(canvas.width / 2 +100, 200 , 150, 100);
-            ctx.fillText("HARD", canvas.width / 2, 350);
+            ctx.fillText('HARD', canvas.width / 2, 350);
         }
 
-        ctx.font = "34pt Impact";
-        ctx.textAlign = "center";
-        ctx.fillText("INSTRUCTIONS:", canvas.width / 2, 40);
-        ctx.font = "18pt Impact";
+        ctx.font = '34pt Impact';
+        ctx.textAlign = 'center';
+        ctx.fillText('INSTRUCTIONS:', canvas.width / 2, 40);
+        ctx.font = '18pt Impact';
 
         if (currentMode === 'human') {
-            ctx.fillText("Cross the road while avoiding ladybugs.", canvas.width / 2 , 80);
-            ctx.fillText("Stars will briefly make you invincible.", canvas.width / 2 , 105);
+            ctx.fillText('Cross the road while avoiding ladybugs.', canvas.width / 2 , 80);
+            ctx.fillText('Stars will briefly make you invincible.', canvas.width / 2 , 105);
 
         } else {
-            ctx.fillText("Prevent the humans from crossing the road.", canvas.width / 2 , 80);
-            ctx.fillText("Stars kill all humans and create rocks.", canvas.width / 2 , 105);            
+            ctx.fillText('Prevent the humans from crossing the road.', canvas.width / 2 , 80);
+            ctx.fillText('Stars kill all humans and create rocks.', canvas.width / 2 , 105);            
         }
-        ctx.fillText("Collect gems for extra points.", canvas.width / 2 , 155);
-        ctx.fillText("Collect hearts to increase your health.", canvas.width / 2 , 130);
-        ctx.fillText("Rocks will block your path.", canvas.width / 2 , 180);
-        ctx.fillText("Press ENTER to select difficulty and start the game", canvas.width / 2, 400);
+        ctx.fillText('Collect gems for extra points.', canvas.width / 2 , 155);
+        ctx.fillText('Collect hearts to increase your health.', canvas.width / 2 , 130);
+        ctx.fillText('Rocks will block your path.', canvas.width / 2 , 180);
+        ctx.fillText('Press ENTER to select difficulty and start the game', canvas.width / 2, 400);
     };
 
     function reset() {
