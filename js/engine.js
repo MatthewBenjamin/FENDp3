@@ -42,18 +42,17 @@ var Engine = (function(global) {
         var now = Date.now(),
             dt = (now - lastTime) / 1000.0;
 
-        /* Call our update/render functions, pass along the time delta to
-         * our update function since it may be used for smooth animation.
-         */
-
         // Render game mode selection first, then instructions/difficulty selection, then render the game
         if (!currentMode) {
             requestAnimationFrame(modeSelectRender);
         } else if (!instructShown) {
             instructRender();
         } else if (paused) {
-            //This freezes the game and waits to be unpaused
+            // This freezes the game and waits to be unpaused
         } else {
+            /* Call our update/render functions, pass along the time delta to
+             * our update function since it may be used for smooth animation.
+             */
             update(dt);
             render();
         }
@@ -80,15 +79,7 @@ var Engine = (function(global) {
         main();
     }
 
-    /* This function is called by main (our game loop) and itself calls all
-     * of the functions which may need to update entity's data. Based on how
-     * you implement your collision detection (when two entities occupy the
-     * same space, for instance when your character should die), you may find
-     * the need to add an additional function call here. For now, we've left
-     * it commented out - you may or may not want to implement this
-     * functionality this way (you could just implement collision detection
-     * on the entities themselves within your app.js file).
-     */
+     // Called by main()
     function update(dt) {
         if (levelUp) {
             nextLevel();
@@ -96,15 +87,9 @@ var Engine = (function(global) {
         updateEntities(dt);
     }
 
-    /* This is called by the update function  and loops through all of the
-     * objects within your allEnemies array as defined in app.js and calls
-     * their update() methods. It will then call the update function for your
-     * player object. These update methods should focus purely on updating
-     * the data/properties related to  the object. Do your drawing in your
-     * render methods.
-     */
+    // Updates all game objects
     function updateEntities(dt) {
-        //update hearts, gems, stars, and rocks based on currentMode
+        // update hearts, gems, stars, and rocks based on currentMode (located in app.js)
         updateItems[currentMode](dt);
 
         allEnemies.forEach(function(enemy) {
@@ -114,12 +99,7 @@ var Engine = (function(global) {
         player.update(dt);
     }
 
-    /* This function initially draws the "game level", it will then call
-     * the renderEntities function. Remember, this function is called every
-     * game tick (or loop of the game engine) because that's how games work -
-     * they are flipbooks creating the illusion of animation but in reality
-     * they are just drawing the entire screen over and over.
-     */
+     // Renders game level & objects every game tick
     function render() {
         /* This array holds the relative URL to the image used
          * for that particular row of the game level.
@@ -141,7 +121,7 @@ var Engine = (function(global) {
          * portion of the "grid"
          */
 
-        //Clear canvas (to prevent images sticking above the water)
+        // Clear canvas (to prevent images sticking above the water)
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
         for (row = 0; row < numRows; row++) {
@@ -159,13 +139,14 @@ var Engine = (function(global) {
 
         renderEntities();
 
-        //show game over screen
+        // If player dies, show game over screen
         if (player.health <= 0) {
             renderDeath();
         }
     }
+    // Renders 'Game Over' screen
     function renderDeath() {
-        //change player x/y so it doesn't collide with enemies in bug mode
+        // change player x/y so it doesn't collide with enemies in bug mode
         player.x = -1000;
         player.y = -1000;
         ctx.fillStyle = 'black';
@@ -178,19 +159,13 @@ var Engine = (function(global) {
         ctx.fillText('FINAL SCORE: ' + player.score, canvas.width / 2, 175 + 83);
         ctx.fillText('Press ENTER to play again', canvas.width / 2, 175 + 83 + 83);
 
-        //restart game
+        // restart game
         if (resetGame) {
             init();
         }
     }
-    /* This function is called by the render function and is called on each game
-     * tick. It's purpose is to then call the render functions you have defined
-     * on your enemy and player entities within app.js
-     */
+     // Loop through all game objects and calls their render functions
     function renderEntities() {
-        /* Loop through all of the objects within the allEnemies array and call
-         * the render function you have defined.
-         */
         allItems.gems.forEach(function(gem) {
             gem.render();
         });
@@ -214,7 +189,7 @@ var Engine = (function(global) {
         player.render();
     }
 
-    //level up in human mode
+    // level up in human mode
     function nextLevel() {
         levelUp = false;
         level ++;
@@ -226,15 +201,11 @@ var Engine = (function(global) {
         allItems.hearts = [];
         allItems.gems = [];
         allItems.rocks = [];
-        generateHumanRocks();
+        Rock.initHuman();
     }
-    /* This function does nothing but it could have been a good place to
-     * handle game reset states - maybe a new game menu or a game over screen
-     * - those sorts of things. It's only called once by the init() method.
-     */
 
     modeSelectRender = function() {
-        //clear canvas
+        // clear canvas
         ctx.clearRect(0,0,canvas.width, canvas.height);
 
         ctx.font = '34pt Impact';
@@ -244,26 +215,26 @@ var Engine = (function(global) {
         ctx.strokeStyle = 'black';
 
         if (inputPos === 0) {
-            //highlight human mode
+            // highlight human mode
             ctx.fillRect(canvas.width / 2 - 225,100,200,100);
 
-            //display passive bug mode
+            // display passive bug mode
             ctx.strokeRect(canvas.width / 2 - 225,250,200,100);
 
-            //display human mode desc
+            // display human mode desc
             ctx.font = '18pt Impact';
             ctx.strokeText('Human', canvas.width / 2 + 125, 125);
             ctx.font = '14pt Impact';
             ctx.fillText('Cross the road while', canvas.width / 2 + 125, 150);
             ctx.fillText('avoiding the ladybugs', canvas.width / 2 + 125, 170);
         } else if (inputPos === 1) {
-            //passive human mode
+            // passive human mode
             ctx.strokeRect(canvas.width / 2 - 225,100,200,100);
 
-            //highlight bug mode
+            // highlight bug mode
             ctx.fillRect(canvas.width / 2 - 225,250,200,100);
 
-            //display bug mode desc
+            // display bug mode desc
             ctx.font = '18pt Impact';
             ctx.strokeText('Bug', canvas.width / 2 + 125, 125);
             ctx.font = '14pt Impact';
@@ -274,7 +245,7 @@ var Engine = (function(global) {
         ctx.font = '18pt Impact';
         ctx.strokeRect(canvas.width / 2 + 25,100,200,250);
 
-        //select screen instructions
+        // select screen instructions
         ctx.strokeRect(canvas.width / 2 - 225, 375, 450, 100);
         ctx.fillText('Directions', canvas.width / 2, 400);
         ctx.fillText('Use UP and DOWN arrows to toggle selection', canvas.width / 2, 430);
@@ -314,7 +285,7 @@ var Engine = (function(global) {
 
         } else {
             ctx.fillText('Prevent the humans from crossing the road.', canvas.width / 2 , 80);
-            ctx.fillText('Stars kill all humans and create rocks.', canvas.width / 2 , 105);            
+            ctx.fillText('Stars kill all humans and create rocks.', canvas.width / 2 , 105);
         }
         ctx.fillText('Collect gems for extra points.', canvas.width / 2 , 155);
         ctx.fillText('Collect hearts to increase your health.', canvas.width / 2 , 130);
@@ -322,6 +293,7 @@ var Engine = (function(global) {
         ctx.fillText('Press ENTER to select difficulty and start the game', canvas.width / 2, 400);
     };
 
+    // Resets game state variables (to start a new game)
     function reset() {
         level = 1;
         levelUp = false;
