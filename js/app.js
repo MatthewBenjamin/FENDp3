@@ -29,6 +29,9 @@ var diffModes =  {
     2 : 'hard'
 };
 
+// Has the instruction screen been shown
+var instructShown;
+
 // TODO: un-round pixel #s?
 // Row & Column coordinates. These numbers have been rounded
 var rows  = [60, 140, 220];
